@@ -20,8 +20,8 @@ export class TrackerController {
 
   @Post('issues')
   @ApiOperation({ summary: 'Создать задачу tracker' })
-  createIssue(@Body() dto: CreateTrackerIssueDto) {
-    return this.tracker.createIssue(dto)
+  createIssue(@GetUserId() userId: string, @Body() dto: CreateTrackerIssueDto) {
+    return this.tracker.createIssue(userId, dto)
   }
 
   @Get('issues/:id')
@@ -44,14 +44,14 @@ export class TrackerController {
 
   @Get('timesheet')
   @ApiOperation({ summary: 'Таймшит tracker' })
-  getTimesheet() {
-    return this.tracker.getTimesheet()
+  getTimesheet(@GetUserId() userId: string) {
+    return this.tracker.getTimesheet(userId)
   }
 
   @Post('timesheet/entries')
   @ApiOperation({ summary: 'Записать часы в таймшит tracker' })
-  addTimesheetEntry(@Body() dto: AddTrackerTimesheetEntryDto) {
-    return this.tracker.addTimesheetEntry(dto)
+  addTimesheetEntry(@GetUserId() userId: string, @Body() dto: AddTrackerTimesheetEntryDto) {
+    return this.tracker.addTimesheetEntry(userId, dto)
   }
 
   @Get('profile')

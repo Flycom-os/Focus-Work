@@ -75,6 +75,9 @@ model User {
   employee Employee?
   customer Customer?
   miroBoards MiroBoard[]
+  trackerAssignedIssues TrackerIssue[] @relation("TrackerAssignee")
+  trackerCreatedIssues  TrackerIssue[] @relation("TrackerCreator")
+  trackerTimeEntries    TrackerTimeEntry[]
 }
 
 model Employee {
@@ -476,4 +479,47 @@ model MiroNode {
   board MiroBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
 
   @@index([boardId])
+}
+
+// ---------- Tracker (issues + timesheets) ----------
+model TrackerIssue {
+  id         String   @id @default(uuid())
+  key        String   @unique
+  summary    String
+  boardId    String
+  type       String   @default("No Type")
+  priority   String   @default("Normal")
+  state      String   @default("Open")
+  subsystem  String   @default("No Subsystem")
+  project    String   @default("WHS")
+
+  assigneeId String?
+  assignee   User?    @relation("TrackerAssignee", fields: [assigneeId], references: [id])
+
+  creatorId  String
+  creator    User     @relation("TrackerCreator", fields: [creatorId], references: [id])
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([boardId])
+  @@index([assigneeId])
+  @@index([creatorId])
+}
+
+model TrackerTimeEntry {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+
+  weekTitle String
+  day       String
+  hours     Float    @default(0)
+  issueKey  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, weekTitle, day])
+  @@index([userId])
 }
