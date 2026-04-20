@@ -6,6 +6,7 @@ import { TrackerHome } from '../pages/tracker/TrackerHome'
 import { TrackerIssuesPage } from '../pages/tracker/TrackerIssuesPage'
 import { TrackerTimesheetsPage } from '../pages/tracker/TrackerTimesheetsPage'
 import { TrackerProfilePage } from '../pages/tracker/TrackerProfilePage'
+import { WikiPage } from '../pages/wiki/WikiPage'
 import { CrmHome } from '../pages/crm/CrmHome'
 import { CrmProfilePage } from '../pages/crm/CrmProfilePage'
 import { CrmSystemPage } from '../pages/crm/CrmSystemPage'
@@ -28,6 +29,7 @@ export function App() {
           <Route path="/tracker/issues" element={<TrackerIssuesPage />} />
           <Route path="/tracker/timesheets" element={<TrackerTimesheetsPage />} />
           <Route path="/tracker/profile" element={<TrackerProfilePage />} />
+          <Route path="/wiki" element={<WikiPage />} />
           <Route path="/crm" element={<CrmHome />} />
           <Route path="/crm/profile" element={<CrmProfilePage />} />
           <Route path="/crm/system" element={<CrmSystemPage />} />

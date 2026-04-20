@@ -5,6 +5,7 @@ const links = [
   { to: '/tracker', label: 'Tracker', theme: 'tracker' },
   { to: '/crm', label: 'CRM', theme: 'crm' },
   { to: '/miro', label: 'Miro', theme: 'miro' },
+  { to: '/wiki', label: 'Wiki', theme: 'tracker' },
 ] as const
 
 export function Header() {
