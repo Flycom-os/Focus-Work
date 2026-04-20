@@ -5,6 +5,7 @@ import { LoginPage } from '../pages/login/LoginPage'
 import { TrackerHome } from '../pages/tracker/TrackerHome'
 import { CrmHome } from '../pages/crm/CrmHome'
 import { MiroHome } from '../pages/miro/MiroHome'
+import { MiroBoardPage } from '../pages/miro/MiroBoardPage'
 
 export function App() {
   return (
@@ -17,6 +18,7 @@ export function App() {
           <Route path="/tracker" element={<TrackerHome />} />
           <Route path="/crm" element={<CrmHome />} />
           <Route path="/miro" element={<MiroHome />} />
+          <Route path="/miro/boards/:boardId" element={<MiroBoardPage />} />
         </Route>
 
         <Route path="*" element={<Navigate to="/" replace />} />

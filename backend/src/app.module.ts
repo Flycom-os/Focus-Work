@@ -20,6 +20,7 @@ import { SettingsModule } from "./app/settings/settings.module";
 import { CacheModule } from './cache/cache.module';
 import { CacheInterceptor } from './cache/cache.interceptor';
 import { CacheClearInterceptor } from './cache/cache-clear.interceptor';
+import { MiroModule } from './app/miro/miro.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { CacheClearInterceptor } from './cache/cache-clear.interceptor';
     CategoryModule,
     BookingModule,
     SettingsModule,
+    MiroModule,
   ],
   controllers: [AppController],
   providers: [

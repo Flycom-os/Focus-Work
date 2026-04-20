@@ -279,3 +279,169 @@ a {
   }
 }
 
+/* ---------- Miro UI ---------- */
+.miroList {
+  display: grid;
+  gap: 12px;
+}
+
+.miroCreate {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+}
+
+.miroBoards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.miroBoardCard {
+  text-align: left;
+  padding: 12px 12px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.miroBoardCard:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.miroBoardCard__title {
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.miroTopBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.miroTopBar__left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.miroTitle {
+  font-weight: 750;
+  letter-spacing: 0.2px;
+}
+
+.miroTopBar__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.miroSaveState {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font-size: 12px;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.miroZoom {
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.miroShell {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 12px;
+  align-items: start;
+}
+
+.miroStage {
+  height: calc(100vh - 220px);
+  min-height: 520px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  overflow: hidden;
+  position: relative;
+  touch-action: none;
+}
+
+.miroWorld {
+  position: absolute;
+  inset: 0;
+  transform-origin: 0 0;
+}
+
+.miroGrid {
+  position: absolute;
+  inset: -2000px;
+  background-size: 40px 40px;
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  opacity: 0.55;
+}
+
+.miroNode {
+  position: absolute;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.25);
+  padding: 10px;
+}
+
+.miroNode--selected {
+  outline: 3px solid rgba(124, 92, 255, 0.45);
+}
+
+.miroNode__text {
+  width: 100%;
+  height: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font);
+  color: rgba(0, 0, 0, 0.82);
+  font-weight: 650;
+  line-height: 1.35;
+}
+
+.miroInspector {
+  position: sticky;
+  top: 78px;
+}
+
+@media (max-width: 1100px) {
+  .miroShell {
+    grid-template-columns: 1fr;
+  }
+  .miroStage {
+    height: 70vh;
+  }
+}
+
+@media (max-width: 860px) {
+  .miroBoards {
+    grid-template-columns: 1fr;
+  }
+  .miroCreate {
+    grid-template-columns: 1fr;
+  }
+}
+

@@ -74,6 +74,7 @@ model User {
   // связи
   employee Employee?
   customer Customer?
+  miroBoards MiroBoard[]
 }
 
 model Employee {
@@ -432,4 +433,47 @@ model Integration {
   company      Company   @relation(fields: [companyId], references: [id])
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+}
+
+// ---------- Miro (whiteboard) ----------
+model MiroBoard {
+  id        String   @id @default(uuid())
+  ownerId   String
+  title     String
+  icon      String?
+  isArchived Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  owner User @relation(fields: [ownerId], references: [id])
+  nodes MiroNode[]
+
+  @@index([ownerId])
+}
+
+enum MiroNodeType {
+  STICKY
+  TEXT
+  FRAME
+}
+
+model MiroNode {
+  id        String @id @default(uuid())
+  boardId   String
+  type      MiroNodeType @default(STICKY)
+  x         Float
+  y         Float
+  w         Float @default(240)
+  h         Float @default(140)
+  rotation  Float @default(0)
+  zIndex    Int   @default(0)
+  text      String?
+  color     String? // hex/rgb
+  data      String? // json string for extensibility
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  board MiroBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  @@index([boardId])
 }

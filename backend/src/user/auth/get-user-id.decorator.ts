@@ -1,11 +1,11 @@
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
 
 export const GetUserId = createParamDecorator(
-  (_data: unknown, ctx: ExecutionContext): number => {
+  (_data: unknown, ctx: ExecutionContext): string => {
     const request = ctx.switchToHttp().getRequest();
     const user = request.user;
 
-    if (!user || typeof user.id !== 'number') {
+    if (!user || typeof user.id !== 'string') {
       throw new Error('User ID не найден в токене');
     }
 
