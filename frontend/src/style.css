@@ -94,6 +94,14 @@ a {
 .brand {
   font-weight: 650;
   letter-spacing: 0.2px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.brand__logo {
+  height: 28px;
+  width: auto;
+  display: block;
 }
 
 .tabs {

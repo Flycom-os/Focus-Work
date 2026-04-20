@@ -22,41 +22,58 @@
   <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
   [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
 
-## Description
+## Focus Work Backend
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+NestJS API сервер для Focus Work.
 
-## Project setup
+### Стек
 
-```bash
-$ npm install
-```
+- NestJS 11
+- Prisma 6
+- PostgreSQL
+- JWT авторизация
 
-## Compile and run the project
-
-```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
-```
-
-## Run tests
+## Установка
 
 ```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+npm install
 ```
+
+## Запуск
+
+```bash
+npm run start:dev
+```
+
+## Prisma / база данных
+
+Схема Prisma находится в `prisma/prisma/schema.prisma`.
+
+### Если видишь ошибку `P2021: The table ... does not exist`
+
+Это значит, что таблицы в Postgres ещё не созданы (миграции не применялись).
+
+Нормальный путь:
+
+```bash
+npx prisma migrate dev --schema=prisma/prisma/schema.prisma
+npx prisma generate --schema=prisma/prisma/schema.prisma
+```
+
+В dev окружении проекта дополнительно есть fallback для `tracker`: при первом запросе сервис может создать таблицы сам,
+чтобы быстро убрать `P2021`.
+
+### Если видишь `EPERM rename query_engine-windows.dll.node` (Windows)
+
+Обычно файл Prisma engine залочен запущенным `node.exe` (backend/Prisma Studio) или антивирусом.
+
+- останови backend/любые node процессы, которые используют Prisma
+- удали `backend/node_modules/.prisma/client/query_engine-windows.dll.node.tmp*`
+- повтори `prisma generate`
+
+## Документация
+
+Подробная wiki по системе — на фронте: страница `/wiki`.
 
 ## Deployment
 

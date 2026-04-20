@@ -19,7 +19,9 @@ export function Header() {
   return (
     <header className="header" data-theme={activeTheme}>
       <div className="header__left">
-        <div className="brand">Focus Work</div>
+        <NavLink to="/tracker" className="brand" aria-label="Focus Work">
+          <img className="brand__logo" src="/logo.svg" alt="Focus Work" />
+        </NavLink>
         <nav className="tabs">
           {links.map((l) => (
             <NavLink
