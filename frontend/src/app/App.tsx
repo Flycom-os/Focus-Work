@@ -3,6 +3,9 @@ import { AuthProvider } from './providers/AuthProvider'
 import { AuthedLayout } from './layouts/AuthedLayout'
 import { LoginPage } from '../pages/login/LoginPage'
 import { TrackerHome } from '../pages/tracker/TrackerHome'
+import { TrackerIssuesPage } from '../pages/tracker/TrackerIssuesPage'
+import { TrackerTimesheetsPage } from '../pages/tracker/TrackerTimesheetsPage'
+import { TrackerProfilePage } from '../pages/tracker/TrackerProfilePage'
 import { CrmHome } from '../pages/crm/CrmHome'
 import { CrmProfilePage } from '../pages/crm/CrmProfilePage'
 import { CrmSystemPage } from '../pages/crm/CrmSystemPage'
@@ -22,6 +25,9 @@ export function App() {
         <Route element={<AuthedLayout />}>
           <Route path="/" element={<Navigate to="/tracker" replace />} />
           <Route path="/tracker" element={<TrackerHome />} />
+          <Route path="/tracker/issues" element={<TrackerIssuesPage />} />
+          <Route path="/tracker/timesheets" element={<TrackerTimesheetsPage />} />
+          <Route path="/tracker/profile" element={<TrackerProfilePage />} />
           <Route path="/crm" element={<CrmHome />} />
           <Route path="/crm/profile" element={<CrmProfilePage />} />
           <Route path="/crm/system" element={<CrmSystemPage />} />

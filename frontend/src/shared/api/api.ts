@@ -102,6 +102,46 @@ export type CrmCompany = {
   paymentMessage: string
 }
 
+export type TrackerIssue = {
+  id: string
+  key: string
+  summary: string
+  boardId: string
+  type: string
+  priority: string
+  state: string
+  assigneeId: string | null
+  assignee: string
+  subsystem: string
+  project: string
+  updatedAt: string
+}
+
+export type TrackerAssignee = {
+  id: string
+  name: string
+  email: string
+}
+
+export type TrackerTimesheet = {
+  weekTitle: string
+  spentTime: number
+  days: Array<{ day: string; hours: number }>
+}
+
+export type TrackerProfile = {
+  id: string
+  fullName: string
+  username: string
+  email: string
+  icon?: string | null
+  createdAt: string
+  vcsUsernames: string[]
+  language: string
+  timezone: string
+  dateFormat: string
+}
+
 type LoginResponse = {
   message: string
   user: AuthUser
@@ -282,6 +322,65 @@ export const api = {
         }),
       update: (token: string, id: string, params: Partial<CrmCompany>) =>
         request<CrmCompany>(`/crm/companies/${id}`, {
+          method: 'PATCH',
+          token,
+          body: JSON.stringify(params),
+        }),
+    },
+  },
+  tracker: {
+    issues: {
+      list: (token: string, query?: string) =>
+        request<TrackerIssue[]>(`/tracker/issues${query ? `?query=${encodeURIComponent(query)}` : ''}`, {
+          method: 'GET',
+          token,
+        }),
+      create: (token: string, params: { summary: string; project?: string; assigneeId?: string }) =>
+        request<TrackerIssue>('/tracker/issues', {
+          method: 'POST',
+          token,
+          body: JSON.stringify(params),
+        }),
+      get: (token: string, id: string) =>
+        request<TrackerIssue>(`/tracker/issues/${id}`, {
+          method: 'GET',
+          token,
+        }),
+      update: (token: string, id: string, params: Partial<TrackerIssue>) =>
+        request<TrackerIssue>(`/tracker/issues/${id}`, {
+          method: 'PATCH',
+          token,
+          body: JSON.stringify(params),
+        }),
+    },
+    assignees: {
+      list: (token: string) =>
+        request<TrackerAssignee[]>('/tracker/assignees', {
+          method: 'GET',
+          token,
+        }),
+    },
+    timesheet: {
+      get: (token: string) =>
+        request<TrackerTimesheet>('/tracker/timesheet', {
+          method: 'GET',
+          token,
+        }),
+      addEntry: (token: string, params: { day: string; hours: number; issueKey?: string }) =>
+        request<TrackerTimesheet>('/tracker/timesheet/entries', {
+          method: 'POST',
+          token,
+          body: JSON.stringify(params),
+        }),
+    },
+    profile: {
+      get: (token: string) =>
+        request<TrackerProfile>('/tracker/profile', {
+          method: 'GET',
+          token,
+        }),
+      update: (token: string, params: Partial<Pick<TrackerProfile, 'fullName' | 'email' | 'username'>> & { password?: string }) =>
+        request<TrackerProfile>('/tracker/profile', {
           method: 'PATCH',
           token,
           body: JSON.stringify(params),

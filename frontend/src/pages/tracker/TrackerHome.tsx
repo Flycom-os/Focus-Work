@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { Link } from 'react-router-dom'
 
 export function TrackerHome() {
   useEffect(() => {
@@ -9,19 +10,16 @@ export function TrackerHome() {
   return (
     <div className="page">
       <div className="page__title">Tracker</div>
-      <div className="grid">
-        <div className="card">
-          <div className="card__title">Сегодня</div>
-          <div className="muted">Прототип: список задач/тайм-трекинг.</div>
-        </div>
-        <div className="card">
-          <div className="card__title">Фокус-сессии</div>
-          <div className="muted">Прототип: старт/пауза/история.</div>
-        </div>
-        <div className="card">
-          <div className="card__title">Статистика</div>
-          <div className="muted">Прототип: графики/метрики.</div>
-        </div>
+      <div className="trackerTiles">
+        <Link className="trackerTile" to="/tracker/issues">
+          Issues
+        </Link>
+        <Link className="trackerTile" to="/tracker/timesheets">
+          Timesheets
+        </Link>
+        <Link className="trackerTile" to="/tracker/profile">
+          User Profile
+        </Link>
       </div>
     </div>
   )
