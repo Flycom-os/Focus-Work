@@ -45,6 +45,63 @@ export type MiroBoard = {
   nodes: MiroNode[]
 }
 
+export type CrmProfile = {
+  id: string
+  email: string
+  fullName: string
+  phone?: string | null
+  role: string
+  icon?: string | null
+}
+
+export type CrmSystemSettings = {
+  companyId: string | null
+  appName: string
+  appColor: string
+  notifyAfterDays: number
+  telegramToken: string
+  autoSendInvoice: string
+  smtpHost: string
+  smtpPort: string
+  imapHost: string
+  imapPort: string
+  smtpUser: string
+  smtpPassword: string
+  senderName: string
+  menu: string[]
+  menuMap: Record<string, boolean>
+}
+
+export type CrmWarehouse = {
+  id: string
+  name: string
+  address: string
+  comment?: string
+  updatedAt: string
+}
+
+export type CrmCompany = {
+  id: string
+  country: string
+  inn: string
+  currency: string
+  organizationType: string
+  name: string
+  address: string
+  bankName: string
+  bankLocation: string
+  bankBik: string
+  cardNumber: string
+  bankAccount: string
+  correspondentAccount: string
+  kpp: string
+  accountNumber: string
+  actNumber: string
+  stampUrl: string
+  signUrl: string
+  paymentMessage: string
+}
+
 type LoginResponse = {
   message: string
   user: AuthUser
@@ -152,6 +209,82 @@ export const api = {
         request<void>(`/miro/nodes/${nodeId}`, {
           method: 'DELETE',
           token,
+        }),
+    },
+  },
+  crm: {
+    profile: {
+      get: (token: string) =>
+        request<CrmProfile>('/crm/profile', {
+          method: 'GET',
+          token,
+        }),
+      update: (token: string, params: Partial<Pick<CrmProfile, 'fullName' | 'email' | 'phone'>> & { password?: string }) =>
+        request<CrmProfile>('/crm/profile', {
+          method: 'PATCH',
+          token,
+          body: JSON.stringify(params),
+        }),
+    },
+    system: {
+      get: (token: string) =>
+        request<CrmSystemSettings>('/crm/system', {
+          method: 'GET',
+          token,
+        }),
+      update: (token: string, params: Partial<CrmSystemSettings>) =>
+        request<CrmSystemSettings>('/crm/system', {
+          method: 'PUT',
+          token,
+          body: JSON.stringify(params),
+        }),
+    },
+    warehouses: {
+      list: (token: string) =>
+        request<CrmWarehouse[]>('/crm/warehouses', {
+          method: 'GET',
+          token,
+        }),
+      create: (token: string, params: { name: string; address: string; comment?: string }) =>
+        request<CrmWarehouse>('/crm/warehouses', {
+          method: 'POST',
+          token,
+          body: JSON.stringify(params),
+        }),
+      update: (token: string, id: string, params: { name?: string; address?: string; comment?: string }) =>
+        request<CrmWarehouse>(`/crm/warehouses/${id}`, {
+          method: 'PATCH',
+          token,
+          body: JSON.stringify(params),
+        }),
+      remove: (token: string, id: string) =>
+        request<void>(`/crm/warehouses/${id}`, {
+          method: 'DELETE',
+          token,
+        }),
+    },
+    companies: {
+      list: (token: string) =>
+        request<CrmCompany[]>('/crm/companies', {
+          method: 'GET',
+          token,
+        }),
+      get: (token: string, id: string) =>
+        request<CrmCompany>(`/crm/companies/${id}`, {
+          method: 'GET',
+          token,
+        }),
+      create: (token: string, params: Partial<CrmCompany>) =>
+        request<CrmCompany>('/crm/companies', {
+          method: 'POST',
+          token,
+          body: JSON.stringify(params),
+        }),
+      update: (token: string, id: string, params: Partial<CrmCompany>) =>
+        request<CrmCompany>(`/crm/companies/${id}`, {
+          method: 'PATCH',
+          token,
+          body: JSON.stringify(params),
         }),
     },
   },

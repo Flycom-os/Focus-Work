@@ -427,6 +427,129 @@ a {
   top: 78px;
 }
 
+/* ---------- CRM UI ---------- */
+.crmTiles {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.crmTile {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 26px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  text-align: center;
+}
+
+.crmTile__title {
+  font-weight: 650;
+}
+
+.crmPanel {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 14px;
+  display: grid;
+  gap: 14px;
+}
+
+.crmTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.crmActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.crmGrid {
+  display: grid;
+  gap: 10px;
+}
+
+.crmGrid--2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.crmGrid--3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.crmGrid--4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.crmGrid--5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.crmColSpan2 {
+  grid-column: span 2;
+}
+
+.crmSubTitle {
+  font-size: 22px;
+  font-weight: 700;
+}
+
+.crmMenuToggles {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  gap: 10px;
+}
+
+.crmToggle {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.crmTable {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.crmTable__head,
+.crmTable__row {
+  display: grid;
+  grid-template-columns: 1.5fr 1.5fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 12px;
+}
+
+.crmTable__head {
+  color: var(--muted);
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.crmTable__row {
+  border-top: 1px solid var(--border);
+}
+
+.crmEmpty {
+  padding: 14px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.crmTextarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
 @media (max-width: 1100px) {
   .miroShell {
     grid-template-columns: 1fr;
@@ -437,6 +560,29 @@ a {
 }
 
 @media (max-width: 860px) {
+  .crmTiles,
+  .crmGrid--2,
+  .crmGrid--3,
+  .crmGrid--4,
+  .crmGrid--5,
+  .crmMenuToggles {
+    grid-template-columns: 1fr;
+  }
+
+  .crmColSpan2 {
+    grid-column: auto;
+  }
+
+  .crmTitleRow {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .crmTable__head,
+  .crmTable__row {
+    grid-template-columns: 1fr;
+  }
+
   .miroBoards {
     grid-template-columns: 1fr;
   }

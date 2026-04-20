@@ -21,6 +21,7 @@ import { CacheModule } from './cache/cache.module';
 import { CacheInterceptor } from './cache/cache.interceptor';
 import { CacheClearInterceptor } from './cache/cache-clear.interceptor';
 import { MiroModule } from './app/miro/miro.module';
+import { CrmModule } from './app/crm/crm.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { MiroModule } from './app/miro/miro.module';
     BookingModule,
     SettingsModule,
     MiroModule,
+    CrmModule,
   ],
   controllers: [AppController],
   providers: [
