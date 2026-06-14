@@ -16,6 +16,8 @@ import { CrmCompaniesPage } from '../pages/crm/CrmCompaniesPage'
 import { CrmCompanyFormPage } from '../pages/crm/CrmCompanyFormPage'
 import { MiroHome } from '../pages/miro/MiroHome'
 import { MiroBoardPage } from '../pages/miro/MiroBoardPage'
+import { TrackerIssuePage } from '../pages/tracker/TrackerIssuePage'
+import { TrackerAgileBoardPage } from '../pages/tracker/TrackerAgileBoardPage'
 
 export function App() {
   return (
@@ -26,7 +28,9 @@ export function App() {
         <Route element={<AuthedLayout />}>
           <Route path="/" element={<Navigate to="/tracker" replace />} />
           <Route path="/tracker" element={<TrackerHome />} />
+          <Route path="/tracker/board" element={<TrackerAgileBoardPage />} />
           <Route path="/tracker/issues" element={<TrackerIssuesPage />} />
+          <Route path="/tracker/issues/:issueId" element={<TrackerIssuePage />} />
           <Route path="/tracker/timesheets" element={<TrackerTimesheetsPage />} />
           <Route path="/tracker/profile" element={<TrackerProfilePage />} />
           <Route path="/wiki" element={<WikiPage />} />

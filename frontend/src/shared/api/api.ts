@@ -102,6 +102,62 @@ export type CrmCompany = {
   paymentMessage: string
 }
 
+export type YtIssue = {
+  id: string;
+  numericId: number;
+  key: string;
+  summary: string;
+  description: string | null;
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt: string | null;
+  archivedAt: string | null;
+  estimation: number | null;
+  projectId: string;
+  authorId: string;
+  assigneeId: string | null;
+  typeId: string | null;
+  stateId: string | null;
+  priorityId: string | null;
+  sprintId: string | null;
+  parentId: string | null;
+};
+
+export type CreateYtIssueDto = {
+  summary: string;
+  description?: string;
+  projectId: string;
+  assigneeId?: string;
+  typeId?: string;
+  stateId?: string;
+  priorityId?: string;
+};
+
+export type UpdateYtIssueDto = Partial<Omit<CreateYtIssueDto, 'projectId'>>;
+
+export type YtAgileBoard = {
+  id: string;
+  name: string;
+  isScrum: boolean;
+  projectId: string;
+  columns: YtBoardColumn[];
+};
+
+export type YtBoardColumn = {
+  id: string;
+  name: string;
+  wipLimit: number | null;
+  boardId: string;
+  states: string[]; // Array of YtIssueState IDs
+  order: number;
+};
+
+export type BoardColumnDto = {
+    id?: string;
+    name: string;
+    stateIds: string[];
+}
+
 export type TrackerIssue = {
   id: string
   key: string
@@ -149,7 +205,7 @@ type LoginResponse = {
   refreash_token: string
 }
 
-const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:7000'
+const API_URL = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:3000'
 
 async function request<T>(
   path: string,
@@ -387,5 +443,65 @@ export const api = {
         }),
     },
   },
+  ytTracker: {
+    issues: {
+      get: (token: string, id: string) =>
+        request<YtIssue>(`/yt-tracker/issues/${id}`, {
+          method: 'GET',
+          token,
+        }),
+      list: (token: string, query?: string) =>
+        request<YtIssue[]>(`/yt-tracker/issues${query ? `/search?q=${encodeURIComponent(query)}` : ''}`, {
+          method: 'GET',
+          token,
+        }),
+      create: (token: string, params: CreateYtIssueDto) =>
+        request<YtIssue>('/yt-tracker/issues', {
+          method: 'POST',
+          token,
+          body: JSON.stringify(params),
+        }),
+      update: (token: string, id: string, params: UpdateYtIssueDto) =>
+        request<YtIssue>(`/yt-tracker/issues/${id}`, {
+          method: 'PATCH',
+          token,
+          body: JSON.stringify(params),
+        }),
+      delete: (token: string, id: string) =>
+        request<void>(`/yt-tracker/issues/${id}`, {
+          method: 'DELETE',
+          token,
+        }),
+    },
+    boards: {
+      create: (token: string, params: { name: string, projectId: string }) =>
+        request<YtAgileBoard>('/yt-tracker/boards', {
+          method: 'POST',
+          token,
+          body: JSON.stringify(params),
+        }),
+      get: (token: string, id: string) =>
+        request<YtAgileBoard>(`/yt-tracker/boards/${id}`, {
+          method: 'GET',
+          token,
+        }),
+      update: (token: string, id: string, params: Partial<{ name: string }>) =>
+        request<YtAgileBoard>(`/yt-tracker/boards/${id}`, {
+          method: 'PATCH',
+          token,
+          body: JSON.stringify(params),
+        }),
+      delete: (token: string, id: string) =>
+        request<void>(`/yt-tracker/boards/${id}`, {
+          method: 'DELETE',
+          token,
+        }),
+      setColumns: (token: string, id: string, columns: BoardColumnDto[]) =>
+        request<YtAgileBoard>(`/yt-tracker/boards/${id}/columns`, {
+            method: 'PUT',
+            token,
+            body: JSON.stringify(columns),
+        }),
+    },
+  },
 }
-

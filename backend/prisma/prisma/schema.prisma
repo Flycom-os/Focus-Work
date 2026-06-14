@@ -78,6 +78,17 @@ model User {
   trackerAssignedIssues TrackerIssue[] @relation("TrackerAssignee")
   trackerCreatedIssues  TrackerIssue[] @relation("TrackerCreator")
   trackerTimeEntries    TrackerTimeEntry[]
+
+  // New YT-Tracker Relations
+  ytOwnedProjects      YtProject[]      @relation("YtProjectOwner")
+  ytProjectMemberships YtProjectMember[] @relation("YtProjectMember")
+  ytAuthoredIssues     YtIssue[]        @relation("YtIssueAuthor")
+  ytAssignedIssues     YtIssue[]        @relation("YtIssueAssignee")
+  ytComments           YtComment[]      @relation("YtCommentAuthor")
+  ytWorklogs           YtWorklog[]      @relation("YtWorklogAuthor")
+  ytHistoryEntries     YtIssueHistory[] @relation("YtIssueHistoryAuthor")
+  ytSavedSearches      YtSavedSearch[]  @relation("YtSavedSearchOwner")
+  ytDashboards         YtDashboard[]    @relation("YtDashboardOwner")
 }
 
 model Employee {
@@ -522,4 +533,351 @@ model TrackerTimeEntry {
 
   @@unique([userId, weekTitle, day])
   @@index([userId])
+}// ---------- YouTrack-like Tracker Module ----------
+
+// Projects are the top-level containers for issues.
+model YtProject {
+  id          String   @id @default(uuid())
+  name        String
+  key         String   @unique // Short identifier for the project, e.g., "PROJ"
+  description String?
+  iconUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ownerId     String
+  owner       User         @relation("YtProjectOwner", fields: [ownerId], references: [id])
+  members     YtProjectMember[]
+  issues      YtIssue[]
+  sprints     YtSprint[]
+  boards      YtAgileBoard[]
+  customFields YtCustomField[]
+  issueTypes  YtIssueType[]
+  issueStates YtIssueState[]
+  issuePriorities YtIssuePriority[]
+  savedSearches YtSavedSearch[]
+  dashboards  YtDashboard[]
+}
+
+// Defines user membership and roles within a project.
+model YtProjectMember {
+  id        String @id @default(uuid())
+  projectId String
+  userId    String
+  role      Role   @default(READ) // Re-using existing Role enum
+
+  project YtProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User      @relation("YtProjectMember", fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([projectId, userId])
+}
+
+// Issues are the core entity for tracking tasks, bugs, etc.
+model YtIssue {
+  id              String   @id @default(uuid())
+  numericId       Int      // Per-project sequential ID, managed by the application
+  key             String   @unique // Combination of project key and numericId, e.g., "PROJ-123"
+  summary         String
+  description     String?  @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  resolvedAt      DateTime?
+  archivedAt      DateTime?
+  estimation      Int? // Story points or time estimate in minutes
+
+  projectId       String
+  project         YtProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  authorId        String
+  author          User      @relation("YtIssueAuthor", fields: [authorId], references: [id])
+
+  assigneeId      String?
+  assignee        User?     @relation("YtIssueAssignee", fields: [assigneeId], references: [id])
+
+  typeId          String?
+  type            YtIssueType? @relation(fields: [typeId], references: [id])
+
+  stateId         String?
+  state           YtIssueState? @relation(fields: [stateId], references: [id])
+
+  priorityId      String?
+  priority        YtIssuePriority? @relation(fields: [priorityId], references: [id])
+
+  sprintId        String?
+  sprint          YtSprint? @relation(fields: [sprintId], references: [id])
+
+  parentId        String?
+  parent          YtIssue?  @relation("YtIssueSubtasks", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  subtasks        YtIssue[] @relation("YtIssueSubtasks")
+
+  customFieldValues YtCustomFieldValue[]
+  comments          YtComment[]
+  history           YtIssueHistory[]
+  worklogs          YtWorklog[]
+  linksAsSource     YtIssueLink[]      @relation("SourceIssue")
+  linksAsTarget     YtIssueLink[]      @relation("TargetIssue")
+
+  @@unique([projectId, numericId])
+  @@index([assigneeId])
+  @@index([authorId])
+  @@index([stateId])
+  @@index([sprintId])
+}
+
+// Types of issues, e.g., Bug, Task, Story.
+model YtIssueType {
+  id        String   @id @default(uuid())
+  name      String
+  iconUrl   String?
+  projectId String
+  project   YtProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  isDefault Boolean  @default(false)
+  issues    YtIssue[]
+
+  @@unique([projectId, name])
+}
+
+// States for issues, e.g., Open, In Progress, Done. Part of a workflow.
+model YtIssueState {
+  id        String   @id @default(uuid())
+  name      String
+  color     String   @default("#8A8A8A") // UI color hint
+  projectId String
+  project   YtProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  isDefault Boolean  @default(false)
+  isDone    Boolean  @default(false) // Marks a final state
+  issues    YtIssue[]
+
+  @@unique([projectId, name])
+}
+
+// Priority levels for issues.
+model YtIssuePriority {
+  id        String   @id @default(uuid())
+  name      String
+  iconUrl   String?
+  color     String?
+  projectId String
+  project   YtProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  isDefault Boolean  @default(false)
+  order     Int      @default(0) // For sorting
+  issues    YtIssue[]
+
+  @@unique([projectId, name])
+}
+
+// Linking between issues, e.g., duplicates, relates to, blocks.
+enum YtIssueLinkType {
+  RELATES_TO
+  BLOCKS
+  IS_BLOCKED_BY
+  DUPLICATES
+  IS_DUPLICATED_BY
+  SUBTASK_OF
+  PARENT_FOR
+}
+
+model YtIssueLink {
+  id       String @id @default(uuid())
+  linkType YtIssueLinkType
+
+  sourceIssueId String
+  sourceIssue   YtIssue @relation("SourceIssue", fields: [sourceIssueId], references: [id], onDelete: Cascade)
+
+  targetIssueId String
+  targetIssue   YtIssue @relation("TargetIssue", fields: [targetIssueId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([sourceIssueId, targetIssueId, linkType])
+}
+
+
+// Custom fields definition for projects.
+enum YtCustomFieldType {
+  STRING
+  INTEGER
+  FLOAT
+  DATE
+  DATETIME
+  BOOLEAN
+  ENUM_SINGLE
+  ENUM_MULTI
+  USER_SINGLE
+  USER_MULTI
+  MARKDOWN
+  URL
+}
+
+model YtCustomField {
+  id        String            @id @default(uuid())
+  name      String
+  type      YtCustomFieldType
+  projectId String
+  project   YtProject         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  settings  Json?             // For enum options, etc. e.g., { "options": ["A", "B"] }
+  values    YtCustomFieldValue[]
+
+  @@unique([projectId, name])
+}
+
+// Values for custom fields on a specific issue.
+model YtCustomFieldValue {
+  id            String   @id @default(uuid())
+  issueId       String
+  issue         YtIssue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  customFieldId String
+  customField   YtCustomField @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
+
+  stringValue   String?
+  integerValue  Int?
+  floatValue    Float?
+  datetimeValue DateTime?
+  booleanValue  Boolean?
+  jsonValue     Json? // For multi-select enums or users
+
+  @@unique([issueId, customFieldId])
+}
+
+
+// Sprints for organizing work in timeboxes.
+model YtSprint {
+  id        String   @id @default(uuid())
+  name      String
+  goal      String?
+  startDate DateTime?
+  endDate   DateTime?
+  isLocked  Boolean  @default(false)
+  projectId String
+  project   YtProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  issues    YtIssue[]
+
+  @@unique([projectId, name])
+}
+
+// Agile boards (Kanban or Scrum) for visualizing issues.
+model YtAgileBoard {
+  id          String   @id @default(uuid())
+  name        String
+  isScrum     Boolean  @default(false) // false = Kanban, true = Scrum
+  projectId   String
+  project     YtProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  columns     YtBoardColumn[]
+  activeSprintId String?
+  // activeSprint YtSprint? @relation(fields: [activeSprintId], references: [id]) // Not a direct relation
+  swimlaneField String? // e.g., 'assignee', 'epic', or a custom field ID
+  filterQuery   String? // A query to filter issues on the board
+
+  @@unique([projectId, name])
+}
+
+model YtBoardColumn {
+  id       String  @id @default(uuid())
+  name     String
+  wipLimit Int?
+  boardId  String
+  board    YtAgileBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  states   Json?   // Array of YtIssueState IDs that map to this column
+  order    Int     @default(0)
+}
+
+// Comments on issues.
+model YtComment {
+  id        String   @id @default(uuid())
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  authorId  String
+  author    User     @relation("YtCommentAuthor", fields: [authorId], references: [id])
+  issueId   String
+  issue     YtIssue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  attachments YtAttachment[]
+
+  @@index([issueId])
+}
+
+model YtAttachment {
+  id          String   @id @default(uuid())
+  filename    String
+  url         String
+  mimetype    String
+  size        Int // in bytes
+  createdAt   DateTime @default(now())
+  commentId   String?
+  comment     YtComment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+}
+
+// Time tracking entries.
+model YtWorklog {
+  id        String   @id @default(uuid())
+  date      DateTime
+  duration  Int // in minutes
+  description String?
+  createdAt DateTime @default(now())
+  authorId  String
+  author    User     @relation("YtWorklogAuthor", fields: [authorId], references: [id])
+  issueId   String
+  issue     YtIssue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+}
+
+// History of changes to an issue.
+model YtIssueHistory {
+  id        String   @id @default(uuid())
+  field     String // e.g., 'assignee', 'state', 'summary'
+  oldValue  String?  @db.Text
+  newValue  String?  @db.Text
+  createdAt DateTime @default(now())
+  authorId  String
+  author    User     @relation("YtIssueHistoryAuthor", fields: [authorId], references: [id])
+  issueId   String
+  issue     YtIssue  @relation(fields: [issueId], references: [id], onDelete: Cascade)
+
+  @@index([issueId])
+}
+
+// Saved searches/filters by users.
+model YtSavedSearch {
+  id        String   @id @default(uuid())
+  name      String
+  query     String
+  ownerId   String
+  owner     User     @relation("YtSavedSearchOwner", fields: [ownerId], references: [id])
+  projectId String
+  project   YtProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([ownerId, projectId, name])
+}
+
+// User dashboards.
+model YtDashboard {
+  id          String   @id @default(uuid())
+  name        String
+  ownerId     String
+  owner       User      @relation("YtDashboardOwner", fields: [ownerId], references: [id])
+  projectId   String?   // Link to project if it's a project dashboard
+  project     YtProject? @relation(fields: [projectId], references: [id])
+  layout      Json?     // Layout of widgets
+  widgets     YtDashboardWidget[]
+
+  @@unique([ownerId, name])
+}
+
+enum YtDashboardWidgetType {
+  SAVED_SEARCH
+  BURNDOWN
+  VELOCITY
+  CUSTOM
+}
+
+model YtDashboardWidget {
+  id          String                @id @default(uuid())
+  dashboardId String
+  dashboard   YtDashboard           @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  type        YtDashboardWidgetType
+  settings    Json // Widget-specific settings, e.g., { savedSearchId: "..." }
 }

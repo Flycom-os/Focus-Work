@@ -23,6 +23,7 @@ import { CacheClearInterceptor } from './cache/cache-clear.interceptor';
 import { MiroModule } from './app/miro/miro.module';
 import { CrmModule } from './app/crm/crm.module';
 import { TrackerModule } from './app/tracker/tracker.module';
+import { YtTrackerModule } from './app/yt-tracker/yt-tracker.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { TrackerModule } from './app/tracker/tracker.module';
     MiroModule,
     CrmModule,
     TrackerModule,
+    YtTrackerModule,
   ],
   controllers: [AppController],
   providers: [
