@@ -1,146 +1,158 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { Type } from 'class-transformer'
-import { IsArray, IsBoolean, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString, Min, ValidateNested } from 'class-validator'
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { BoardRole, ElementType } from '@prisma/client';
+import {
+  IsEnum,
+  IsBoolean,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsNumber,
+  IsArray,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
 
-export class CreateMiroBoardDto {
-  @ApiProperty({ example: 'Mind map' })
+export class CreateBoardDto {
+  @ApiProperty({ example: 'My New Awesome Board' })
   @IsString()
   @IsNotEmpty()
-  title: string
-}
+  name: string;
 
-export class UpdateMiroBoardDto {
-  @ApiPropertyOptional({ example: 'Новая доска' })
-  @IsOptional()
+  @ApiPropertyOptional({ example: 'A board for brainstorming creative ideas.' })
   @IsString()
-  title?: string
-
-  @ApiPropertyOptional({ example: false })
   @IsOptional()
+  description?: string;
+
+  @ApiPropertyOptional({
+    example: 'c1b9b3b4-0b3f-4e4a-9b1b-9b3b4e4a9b1b',
+    description: 'ID of the project this board belongs to.',
+  })
+  @IsUUID()
+  @IsOptional()
+  projectId?: string;
+
+  @ApiPropertyOptional({
+    example: false,
+    description: 'Whether the board is publicly accessible.',
+  })
   @IsBoolean()
-  isArchived?: boolean
+  @IsOptional()
+  isPublic?: boolean;
 }
 
-export class CreateMiroNodeDto {
-  @ApiPropertyOptional({ example: 'STICKY', enum: ['STICKY', 'TEXT', 'FRAME'] })
-  @IsOptional()
+export class UpdateBoardDto {
+  @ApiPropertyOptional({ example: 'My Updated Board Name' })
   @IsString()
-  @IsIn(['STICKY', 'TEXT', 'FRAME'])
-  type?: 'STICKY' | 'TEXT' | 'FRAME'
-
-  @ApiProperty({ example: 120 })
-  @IsNumber()
-  x: number
-
-  @ApiProperty({ example: 80 })
-  @IsNumber()
-  y: number
-
-  @ApiPropertyOptional({ example: 240 })
+  @IsNotEmpty()
   @IsOptional()
-  @IsNumber()
-  @Min(20)
-  w?: number
+  name?: string;
 
-  @ApiPropertyOptional({ example: 140 })
-  @IsOptional()
-  @IsNumber()
-  @Min(20)
-  h?: number
-
-  @ApiPropertyOptional({ example: 'Идея' })
-  @IsOptional()
+  @ApiPropertyOptional({ example: 'Updated description.' })
   @IsString()
-  text?: string
-
-  @ApiPropertyOptional({ example: '#FBBF24' })
   @IsOptional()
-  @IsString()
-  color?: string
+  description?: string;
 
-  @ApiPropertyOptional({ example: 0 })
+  @ApiPropertyOptional({
+    example: true,
+    description: 'Whether the board is publicly accessible.',
+  })
+  @IsBoolean()
   @IsOptional()
-  @IsNumber()
-  rotation?: number
+  isPublic?: boolean;
 
-  @ApiPropertyOptional({ example: 0 })
+  @ApiPropertyOptional({
+    description: 'Board-specific settings in JSON format.',
+    example: { theme: 'dark', snapToGrid: true },
+  })
   @IsOptional()
-  @IsNumber()
-  zIndex?: number
-
-  @ApiPropertyOptional({ example: '{"shape":"rounded"}' })
-  @IsOptional()
-  @IsString()
-  data?: string
+  settings?: any;
 }
 
-export class UpdateMiroNodeDto {
-  @ApiPropertyOptional({ example: 120 })
-  @IsOptional()
-  @IsNumber()
-  x?: number
+export class AddBoardMemberDto {
+  @ApiProperty({
+    example: 'a1b9b3b4-0b3f-4e4a-9b1b-9b3b4e4a9b1c',
+    description: 'The ID of the user to add to the board.',
+  })
+  @IsUUID()
+  userId: string;
 
-  @ApiPropertyOptional({ example: 80 })
-  @IsOptional()
-  @IsNumber()
-  y?: number
-
-  @ApiPropertyOptional({ example: 240 })
-  @IsOptional()
-  @IsNumber()
-  @Min(20)
-  w?: number
-
-  @ApiPropertyOptional({ example: 140 })
-  @IsOptional()
-  @IsNumber()
-  @Min(20)
-  h?: number
-
-  @ApiPropertyOptional({ example: 'Текст' })
-  @IsOptional()
-  @IsString()
-  text?: string
-
-  @ApiPropertyOptional({ example: '#A78BFA' })
-  @IsOptional()
-  @IsString()
-  color?: string
-
-  @ApiPropertyOptional({ example: 0 })
-  @IsOptional()
-  @IsNumber()
-  rotation?: number
-
-  @ApiPropertyOptional({ example: 10 })
-  @IsOptional()
-  @IsNumber()
-  zIndex?: number
-
-  @ApiPropertyOptional({ example: '{"foo":"bar"}' })
-  @IsOptional()
-  @IsString()
-  data?: string
+  @ApiProperty({
+    enum: BoardRole,
+    example: BoardRole.EDITOR,
+    description: 'The role to assign to the new member.',
+  })
+  @IsEnum(BoardRole)
+  role: BoardRole;
 }
 
-export class SyncMiroNodeDto extends UpdateMiroNodeDto {
-  @ApiPropertyOptional({ example: 'uuid' })
-  @IsOptional()
-  @IsString()
-  id?: string
-
-  @ApiPropertyOptional({ example: 'STICKY', enum: ['STICKY', 'TEXT', 'FRAME'] })
-  @IsOptional()
-  @IsString()
-  @IsIn(['STICKY', 'TEXT', 'FRAME'])
-  type?: 'STICKY' | 'TEXT' | 'FRAME'
+export class UpdateBoardMemberDto {
+  @ApiProperty({
+    enum: BoardRole,
+    example: BoardRole.VIEWER,
+    description: 'The new role for the board member.',
+  })
+  @IsEnum(BoardRole)
+  role: BoardRole;
 }
 
-export class SyncMiroBoardDto {
-  @ApiProperty({ type: [SyncMiroNodeDto] })
+// DTO for syncing elements from the frontend (tldraw)
+export class SyncElementDto {
+  @ApiProperty()
+  @IsUUID()
+  id: string;
+
+  @ApiProperty({ enum: ElementType })
+  @IsEnum(ElementType)
+  type: ElementType;
+
+  @ApiProperty()
+  @IsNumber()
+  x: number;
+
+  @ApiProperty()
+  @IsNumber()
+  y: number;
+
+  @ApiProperty()
+  @IsNumber()
+  width: number;
+
+  @ApiProperty()
+  @IsNumber()
+  height: number;
+
+  @ApiProperty()
+  @IsNumber()
+  rotation: number;
+
+  @ApiProperty()
+  @IsNumber()
+  zIndex: number;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  style?: any;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  content?: any;
+  
+  @ApiPropertyOptional()
+  @IsUUID()
+  @IsOptional()
+  linkedIssueId?: string;
+}
+
+export class SyncBoardDto {
+  @ApiProperty({ type: [SyncElementDto] })
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => SyncMiroNodeDto)
-  nodes: SyncMiroNodeDto[]
-}
+  @Type(() => SyncElementDto)
+  elements: SyncElementDto[];
 
+  @ApiProperty({ description: "IDs of elements to delete" })
+  @IsArray()
+  @IsUUID(undefined, { each: true })
+  deletedElementIds: string[];
+}

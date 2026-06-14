@@ -10,7 +10,7 @@ export function MiroHome() {
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [title, setTitle] = useState('Mind map')
+  const [name, setName] = useState('Mind map')
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', 'miro')
@@ -38,21 +38,21 @@ export function MiroHome() {
     }
   }, [accessToken])
 
-  const canCreate = useMemo(() => title.trim().length > 0 && !creating && !!accessToken, [title, creating, accessToken])
+  const canCreate = useMemo(() => name.trim().length > 0 && !creating && !!accessToken, [name, creating, accessToken])
 
   return (
     <div className="page">
-      <div className="page__title">Miro</div>
+      <div className="page__name">Miro</div>
       <div className="grid">
         <div className="card" style={{ gridColumn: 'span 12' as any }}>
-          <div className="card__title">Доски</div>
+          <div className="card__name">Доски</div>
           <div className="muted" style={{ marginBottom: 10 }}>
             Создавайте доски и открывайте редактор. Данные сохраняются в Postgres через Nest API.
           </div>
 
           <div className="miroList">
             <div className="miroCreate">
-              <input className="input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Название доски" />
+              <input className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Название доски" />
               <button
                 className="btn"
                 disabled={!canCreate}
@@ -61,7 +61,7 @@ export function MiroHome() {
                   setCreating(true)
                   setError(null)
                   try {
-                    const b = await api.miro.boards.create(accessToken, { title: title.trim() })
+                    const b = await api.miro.boards.create(accessToken, { name: name.trim() })
                     navigate(`/miro/boards/${b.id}`)
                   } catch (e) {
                     setError(e instanceof Error ? e.message : 'Ошибка создания доски')
@@ -85,10 +85,10 @@ export function MiroHome() {
                 ) : (
                   boards.map((b) => (
                     <button key={b.id} className="miroBoardCard" onClick={() => navigate(`/miro/boards/${b.id}`)}>
-                      <div className="miroBoardCard__title">{b.title}</div>
-                      <div className="muted">
-                        Нод: {b._count?.nodes ?? 0} · обновлено {new Date(b.updatedAt).toLocaleString()}
-                      </div>
+                      <div className="miroBoardCard__name">{b.name}</div>
+                                            <div className="muted">
+                                              Участников: {b._count?.members ?? 0} · Элементов: {b._count?.elements ?? 0} · обновлено {new Date(b.updatedAt).toLocaleString()}
+                                            </div>
                     </button>
                   ))
                 )}

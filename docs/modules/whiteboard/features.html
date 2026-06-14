@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Фичи и Практические гайды — Модуль Whiteboard</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Mermaid JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-150">
+
+  <!-- Header -->
+  <header id="doc-header"></header>
+
+  <div class="flex flex-1 w-full max-w-8xl mx-auto">
+    <!-- Sidebar -->
+    <aside id="doc-sidebar"></aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 lg:pl-64 xl:pr-64">
+      <main id="doc-content" class="p-6 md:p-10 max-w-4xl mx-auto">
+        <article class="space-y-10">
+          
+          <!-- Breadcrumbs -->
+          <nav class="flex text-sm text-slate-500 dark:text-slate-400 gap-2">
+            <a href="../index.html" class="hover:text-indigo-500">Главная</a>
+            <span>/</span>
+            <a href="index.html" class="hover:text-indigo-500">Модуль Whiteboard</a>
+            <span>/</span>
+            <span class="text-slate-400">Фичи и Практические гайды</span>
+          </nav>
+
+          <!-- Title -->
+          <div class="space-y-4">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">🛠 Фичи и Практические гайды Whiteboard</h1>
+            <p class="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+              В этом документе содержатся детальные инструкции по оптимизации производительности холста, добавлению новых графических инструментов и экспорту доски.
+            </p>
+          </div>
+
+          <!-- Section 1: Core Features -->
+          <section id="features" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              📌 1. Детальный разбор ключевых возможностей
+            </h2>
+            <p>
+              Холст Whiteboard спроектирован как высокопроизводительное графическое приложение. Ниже описан функционал, с которым вы будете взаимодействовать:
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="p-5 border border-slate-200 dark:border-slate-800 rounded-lg space-y-2">
+                <h4 class="font-bold text-pink-500">📝 Интерактивные стикеры (Sticky Notes)</h4>
+                <p class="text-sm">
+                  Аналог физических стикеров Miro. Стикеры рендерятся через SVG-элемент <code class="font-mono">&lt;foreignObject&gt;</code>, что позволяет встраивать внутрь SVG стандартный HTML-текст (textarea), с поддержкой переноса строк, шрифтов и выделения курсором.
+                </p>
+              </div>
+
+              <div class="p-5 border border-slate-200 dark:border-slate-800 rounded-lg space-y-2">
+                <h4 class="font-bold text-pink-500">🏹 Умные стрелки-соединители (Arrows)</h4>
+                <p class="text-sm">
+                  Соединяют две фигуры. При перетаскивании фигуры стрелка автоматически пересчитывает свои координаты начала и конца. Для расчета мы используем алгоритм пересечения луча с границами ограничивающего прямоугольника фигуры (Bounding Box).
+                </p>
+              </div>
+
+              <div class="p-5 border border-slate-200 dark:border-slate-800 rounded-lg space-y-2">
+                <h4 class="font-bold text-pink-500">✏️ Сглаживание произвольного рисования</h4>
+                <p class="text-sm">
+                  При рисовании карандашом (режим PATH) сырые координаты мыши содержат много угловатых отрезков. Мы сглаживаем их с помощью формулы квадратичных кривых Безье, преобразуя набор точек в сглаженную строку SVG-команд вида <code class="font-mono">d="M x y Q x1 y1 x2 y2"</code>.
+                </p>
+              </div>
+
+              <div class="p-5 border border-slate-200 dark:border-slate-800 rounded-lg space-y-2">
+                <h4 class="font-bold text-pink-500">💾 Экспорт в PNG и SVG</h4>
+                <p class="text-sm">
+                  Для экспорта мы сериализуем текущее дерево SVG в строку XML, конвертируем ее в URL base64 и рендерим на скрытом Canvas элементе. Далее с помощью метода <code class="font-mono">canvas.toDataURL("image/png")</code> скачиваем файл на ПК пользователя.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Section 2: Optimization Guide -->
+          <section id="optimizations" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              ⚡ 2. Руководство по оптимизации производительности
+            </h2>
+            
+            <div class="p-6 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 space-y-4">
+              <h3 class="text-lg font-bold text-pink-500">🚀 Проблема: Браузер зависает при рендеринге 10 000+ элементов</h3>
+              <p class="text-sm">
+                Поскольку мы используем SVG, каждая фигура становится частью дерева DOM. При попытке перетащить холст с 10 000 фигур, браузер вынужден пересчитывать стили и макет (Reflow/Repaint) для 10 000 DOM-узлов 60 раз в секунду. Это приводит к падению частоты кадров до 5-10 FPS.
+              </p>
+              <p class="text-sm font-semibold">
+                Как исправить это в будущем (Архитектурный план перехода на Canvas):
+              </p>
+              <ul class="list-disc pl-6 space-y-2 text-sm">
+                <li>
+                  <strong>Переход с SVG на HTML5 Canvas API:</strong> Рисование происходит напрямую в буфер пикселей (видеокарту), минуя создание DOM-узлов. Отрисовка 10 000 прямоугольников на Canvas занимает менее 2 миллисекунд.
+                </li>
+                <li>
+                  <strong>Фрустум-куллинг (Viewport Clipping):</strong> Мы отрисовываем только те фигуры, координаты которых попадают в текущий прямоугольник видимости экрана. Фигуры за пределами экрана игнорируются при рендеринге.
+                </li>
+                <li>
+                  <strong>Пространственное индексирование (Quadtree):</strong> Для быстрого поиска фигур, пересекающих экран, мы делим плоскость на квадранты. Поиск фигур для рендеринга занимает O(log N) времени вместо O(N).
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- Section 3: Guides -->
+          <section id="guides" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              🛠 3. Практические руководства (How-To)
+            </h2>
+
+            <div class="space-y-4">
+              <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">🎨 Гайд: Как добавить новый инструмент — Рисование кругов (Circle Tool)?</h3>
+              <p class="text-sm">
+                Давайте пошагово разберем, как расширить возможности панели инструментов и холста, добавив инструмент создания окружностей.
+              </p>
+
+              <div class="space-y-3 text-sm">
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Шаг 1: Обновление типов</p>
+                <p>Добавьте значение <code class="font-mono">CIRCLE</code> в тип <code class="font-mono">ShapeType</code> в вашей Prisma-схеме и запустите миграцию базы данных. Также обновите стейт инструментов в <code class="font-mono">Canvas.tsx</code>:</p>
+                <pre data-filename="src/components/whiteboard/Canvas.tsx"><code>// Добавляем CIRCLE в список доступных инструментов
+const [tool, setTool] = useState&lt;"SELECT" | "RECTANGLE" | "CIRCLE" | "PAN"&gt;("SELECT");</code></pre>
+
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Шаг 2: Добавление кнопки на панель инструментов</p>
+                <pre data-filename="src/components/whiteboard/Canvas.tsx"><code>&lt;button 
+  onClick={() =&gt; setTool("CIRCLE")} 
+  class={`px-3 py-1.5 rounded text-xs ${tool === "CIRCLE" ? "bg-indigo-600 text-white" : "hover:bg-slate-100 dark:hover:bg-slate-800"}`}
+&gt;
+  + Окружность
+&lt;/button&gt;</code></pre>
+
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Шаг 3: Логика обработки мыши</p>
+                <p>Обновите метод <code class="font-mono">handleMouseDown</code>, чтобы при клике создавалась фигура с типом <code class="font-mono">CIRCLE</code>:</p>
+                <pre data-filename="src/components/whiteboard/Canvas.tsx"><code>if (tool === "CIRCLE") {
+  const { x, y } = getCanvasCoords(e.clientX, e.clientY);
+  const newCircle: Shape = {
+    id: crypto.randomUUID(),
+    type: "CIRCLE",
+    x,
+    y,
+    width: 80,  // Для круга width и height — это диаметр
+    height: 80,
+    fill: "#fbcfe8" // Нежно-розовый
+  };
+  setShapes(prev => [...prev, newCircle]);
+  emitShapeUpdate(newCircle);
+  setTool("SELECT");
+}</code></pre>
+
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Шаг 4: Рендеринг круга в SVG</p>
+                <p>Внутри контейнера рендеринга добавьте условие для отрисовки тега <code class="font-mono">&lt;circle&gt;</code>:</p>
+                <pre data-filename="src/components/whiteboard/Canvas.tsx"><code>{shapes.map(shape => {
+  if (shape.type === "CIRCLE") {
+    // В SVG circle центрируется по cx/cy, а радиус r — половина ширины
+    return (
+      &lt;circle
+        key={shape.id}
+        cx={shape.x + shape.width / 2}
+        cy={shape.y + shape.height / 2}
+        r={shape.width / 2}
+        fill={shape.fill}
+        stroke="#db2777"
+        stroke-width="2"
+      /&gt;
+    );
+  }
+  
+  // Рендеринг прямоугольника...
+})}</code></pre>
+              </div>
+            </div>
+          </section>
+
+          <!-- Section 4: FAQ -->
+          <section id="faq" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              ❓ 4. FAQ: Ошибки позиционирования на Retina экранах
+            </h2>
+
+            <div class="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+              <button class="collapsible-trigger w-full flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-950 text-left font-bold text-sm">
+                <span>Проблема: На Macbook (экранах Retina) курсор рисует с большим смещением в сторону</span>
+                <svg class="h-5 w-5 transform transition-transform duration-200 collapsible-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+              <div class="collapsible-content p-4 border-t border-slate-200 dark:border-slate-800 hidden text-sm text-slate-600 dark:text-slate-400 space-y-2">
+                <p><strong>Причина:</strong> Экраны высокой плотности пикселей (High-DPI / Retina) используют коэффициент масштабирования <code class="font-mono">window.devicePixelRatio = 2</code> или выше.</p>
+                <p>Если вы рендерите холст через HTML5 Canvas и не масштабируете внутреннее разрешение холста, картинка будет размытой, а координаты мыши разъедутся.</p>
+                <p><strong>Решение:</strong> В SVG этой проблемы нет, так как SVG адаптивен изначально. Но если вы дорабатываете Canvas-версию, не забывайте масштабировать размеры холста:</p>
+                <pre data-filename="src/components/whiteboard/Canvas.tsx"><code>const dpr = window.devicePixelRatio || 1;
+canvas.width = rect.width * dpr;
+canvas.height = rect.height * dpr;
+ctx.scale(dpr, dpr); // Важно: масштабируем контекст рисования!</code></pre>
+              </div>
+            </div>
+          </section>
+
+        </article>
+      </main>
+      
+      <!-- Footer -->
+      <footer class="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 py-8 px-6 text-center text-xs text-slate-500 dark:text-slate-400">
+        <p>© 2026 Flycom-os. Внутренняя техническая документация.</p>
+      </footer>
+    </div>
+
+    <!-- Right Sidebar TOC -->
+    <aside id="doc-toc"></aside>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../assets/navigation.js"></script>
+  <script src="../assets/script.js"></script>
+</body>
+</html>

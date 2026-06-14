@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Разбор кода — Модуль Whiteboard</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Mermaid JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-150">
+
+  <!-- Header -->
+  <header id="doc-header"></header>
+
+  <div class="flex flex-1 w-full max-w-8xl mx-auto">
+    <!-- Sidebar -->
+    <aside id="doc-sidebar"></aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 lg:pl-64 xl:pr-64">
+      <main id="doc-content" class="p-6 md:p-10 max-w-4xl mx-auto">
+        <article class="space-y-10">
+          
+          <!-- Breadcrumbs -->
+          <nav class="flex text-sm text-slate-500 dark:text-slate-400 gap-2">
+            <a href="../index.html" class="hover:text-indigo-500">Главная</a>
+            <span>/</span>
+            <a href="index.html" class="hover:text-indigo-500">Модуль Whiteboard</a>
+            <span>/</span>
+            <span class="text-slate-400">Разбор кода</span>
+          </nav>
+
+          <!-- Title -->
+          <div class="space-y-4">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">💻 Разбор кода модуля Whiteboard</h1>
+            <p class="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+              Векторная графика в реальном времени требует от разработчика понимания работы с бесконечным холстом и WebSocket сокетами. Разберем ключевые файлы, отвечающие за интерактивность и реалтайм синхронизацию.
+            </p>
+          </div>
+
+          <!-- Section 1: Infinite Canvas -->
+          <section id="canvas-component" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              🖼 1. Бесконечный холст Canvas.tsx
+            </h2>
+            <p>
+              Чтобы сделать холст бесконечным, мы не рендерим гигантскую SVG-картинку размером 100 000 на 100 000 пикселей. Вместо этого мы храним в React-стейтах три числа:
+              <code class="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded font-mono">panX</code> (сдвиг по горизонтали),
+              <code class="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded font-mono">panY</code> (сдвиг по вертикали) и
+              <code class="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded font-mono">scale</code> (масштаб).
+            </p>
+            <p>
+              Все фигуры мы рендерим внутри одного контейнера <code class="font-mono">&lt;g&gt;</code> в SVG, к которому применяем CSS-трансформацию `transform: translate(panX, panY) scale(scale)`.
+            </p>
+
+            <pre data-filename="src/components/whiteboard/Canvas.tsx"><code>"use client";
+
+import React, { useRef, useState } from "react";
+import { useWhiteboardSocket } from "@/hooks/useWhiteboardSocket";
+
+interface Shape {
+  id: string;
+  type: "RECTANGLE" | "CIRCLE" | "STICKER";
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fill: string;
+}
+
+export default function Canvas({ whiteboardId }: { whiteboardId: string }) {
+  const svgRef = useRef&lt;SVGSVGElement&gt;(null);
+  
+  // Координаты смещения холста (Панорамирование)
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [scale, setScale] = useState(1);
+  const [isPanning, setIsPanning] = useState(false);
+  const [startPan, setStartPan] = useState({ x: 0, y: 0 });
+
+  // Локальные фигуры
+  const [shapes, setShapes] = useState&lt;Shape[]&gt;([]);
+  // Инструмент рисования: "SELECT" | "RECTANGLE" | "PAN"
+  const [tool, setTool] = useState&lt;"SELECT" | "RECTANGLE" | "PAN"&gt;("SELECT");
+
+  // Подключаем WebSocket сокеты
+  const { emitShapeUpdate, emitCursorMove, activeCursors } = useWhiteboardSocket({
+    whiteboardId,
+    onRemoteShapeUpdate: (updatedShape) => {
+      setShapes(prev => {
+        const filtered = prev.filter(s => s.id !== updatedShape.id);
+        return [...filtered, updatedShape];
+      });
+    }
+  });
+
+  // Преобразование экранных координат мыши в координаты на бесконечном холсте
+  const getCanvasCoords = (clientX: number, clientY: number) => {
+    if (!svgRef.current) return { x: 0, y: 0 };
+    const rect = svgRef.current.getBoundingClientRect();
+    
+    // Вычитаем позицию SVG-элемента на экране, затем учитываем сдвиг (pan) и масштаб (scale)
+    const x = (clientX - rect.left - pan.x) / scale;
+    const y = (clientY - rect.top - pan.y) / scale;
+    return { x, y };
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (tool === "PAN" || e.button === 1) { // Клик колесиком мыши или активный режим PAN
+      setIsPanning(true);
+      setStartPan({ x: e.clientX - pan.x, y: e.clientY - pan.y });
+      return;
+    }
+
+    if (tool === "RECTANGLE") {
+      const { x, y } = getCanvasCoords(e.clientX, e.clientY);
+      const newShape: Shape = {
+        id: crypto.randomUUID(),
+        type: "RECTANGLE",
+        x,
+        y,
+        width: 100,
+        height: 100,
+        fill: "#a5b4fc" // Нежно-синий
+      };
+      
+      setShapes(prev => [...prev, newShape]);
+      emitShapeUpdate(newShape); // Отправляем на бэк по веб-сокетам
+      setTool("SELECT"); // Возвращаемся в режим выбора
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isPanning) {
+      setPan({
+        x: e.clientX - startPan.x,
+        y: e.clientY - startPan.y
+      });
+      return;
+    }
+
+    // Транслируем положение курсора мыши другим пользователям
+    const { x, y } = getCanvasCoords(e.clientX, e.clientY);
+    emitCursorMove({ x, y });
+  };
+
+  const handleMouseUp = () => {
+    setIsPanning(false);
+  };
+
+  // Зум колесиком мыши (с привязкой масштабирования к курсору мыши)
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const zoomFactor = 1.1;
+    const nextScale = e.deltaY < 0 ? scale * zoomFactor : scale / zoomFactor;
+    
+    // Ограничиваем зум от 10% до 500%
+    const boundedScale = Math.min(Math.max(nextScale, 0.1), 5);
+    setScale(boundedScale);
+  };
+
+  return (
+    &lt;div class="relative w-full h-[600px] bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden"&gt;
+      {/* Панель инструментов */}
+      &lt;div class="absolute top-4 left-4 z-10 flex gap-2 bg-white dark:bg-slate-900 p-2 rounded-lg shadow-md border dark:border-slate-800"&gt;
+        &lt;button onClick={() =&gt; setTool("SELECT")} class={`px-3 py-1.5 rounded text-xs ${tool === "SELECT" ? "bg-indigo-600 text-white" : "hover:bg-slate-100 dark:hover:bg-slate-800"}`}&gt;Выбор&lt;/button&gt;
+        &lt;button onClick={() =&gt; setTool("RECTANGLE")} class={`px-3 py-1.5 rounded text-xs ${tool === "RECTANGLE" ? "bg-indigo-600 text-white" : "hover:bg-slate-100 dark:hover:bg-slate-800"}`}&gt;+ Прямоугольник&lt;/button&gt;
+        &lt;button onClick={() =&gt; setTool("PAN")} class={`px-3 py-1.5 rounded text-xs ${tool === "PAN" ? "bg-indigo-600 text-white" : "hover:bg-slate-100 dark:hover:bg-slate-800"}`}&gt;Рука (Pan)&lt;/button&gt;
+      &lt;/div&gt;
+
+      &lt;svg
+        ref={svgRef}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onWheel={handleWheel}
+        class="w-full h-full cursor-grab active:cursor-grabbing outline-none"
+      &gt;
+        {/* Контейнер с бесконечной матрицей сдвига и зума */}
+        &lt;g transform={`translate(${pan.x}, ${pan.y}) scale(${scale})`}&gt;
+          {/* Координатная сетка на фоне */}
+          &lt;defs&gt;
+            &lt;pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"&gt;
+              &lt;path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(148, 163, 184, 0.1)" stroke-width="1" /&gt;
+            &lt;/pattern&gt;
+          &lt;/defs&gt;
+          &lt;rect width="100000" height="100000" x="-50000" y="-50000" fill="url(#grid)" pointer-events="none" /&gt;
+
+          {/* Отрисовка фигур */}
+          {shapes.map(shape =&gt; (
+            &lt;rect
+              key={shape.id}
+              x={shape.x}
+              y={shape.y}
+              width={shape.width}
+              height={shape.height}
+              fill={shape.fill}
+              stroke="#4f46e5"
+              stroke-width="2"
+              rx="4"
+            /&gt;
+          ))}
+
+          {/* Отрисовка чужих курсоров */}
+          {Object.entries(activeCursors).map(([userId, cursor]: [string, any]) =&gt; (
+            &lt;g key={userId} transform={`translate(${cursor.x}, ${cursor.y})`}&gt;
+              &lt;polygon points="0,0 4,14 7,10 12,12" fill={cursor.color || "#ef4444"} /&gt;
+              &lt;rect x="10" y="10" width="70" height="18" fill={cursor.color || "#ef4444"} rx="3" /&gt;
+              &lt;text x="14" y="22" fill="#fff" font-size="10" font-family="sans-serif" font-weight="bold"&gt;
+                {cursor.name || "Гость"}
+              &lt;/text&gt;
+            &lt;/g&gt;
+          ))}
+        &lt;/g&gt;
+      &lt;/svg&gt;
+    &lt;/div&gt;
+  );
+}</code></pre>
+          </section>
+
+          <!-- Section 2: WebSocket Sync -->
+          <section id="socket-hook" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              📡 2. Синхронизация по сокетам useWhiteboardSocket.ts
+            </h2>
+            <p>
+              Этот хук отвечает за сетевое взаимодействие с сервером WebSocket на базе Socket.io. Он подписывается на комнату конкретной доски и транслирует локальные события в эфир.
+            </p>
+
+            <pre data-filename="src/hooks/useWhiteboardSocket.ts"><code>import { useEffect, useRef, useState } from "react";
+import { io, Socket } from "socket.io-client";
+
+interface UseSocketProps {
+  whiteboardId: string;
+  onRemoteShapeUpdate: (shape: any) => void;
+}
+
+export function useWhiteboardSocket({ whiteboardId, onRemoteShapeUpdate }: UseSocketProps) {
+  const socketRef = useRef&lt;Socket | null&gt;(null);
+  const [activeCursors, setActiveCursors] = useState&lt;Record&lt;string, any&gt;&gt;({});
+
+  useEffect(() => {
+    // Подключаемся к WebSocket серверу
+    const socketUrl = process.env.NEXT_PUBLIC_WS_SERVER_URL || "http://localhost:3001";
+    const socket = io(socketUrl, {
+      transports: ["websocket"] // Принудительно используем быстрые вебсокеты без HTTP-polling
+    });
+    
+    socketRef.current = socket;
+
+    // Входим в комнату нашей доски
+    socket.emit("whiteboard:join", { whiteboardId });
+
+    // Слушаем создание и обновление фигур другими разработчиками
+    socket.on("shape:updated", (shape: any) => {
+      onRemoteShapeUpdate(shape);
+    });
+
+    // Слушаем перемещение курсоров других пользователей
+    socket.on("cursor:moved", (data: { userId: string; name: string; x: number; y: number; color: string }) => {
+      setActiveCursors(prev => ({
+        ...prev,
+        [data.userId]: { x: data.x, y: data.y, name: data.name, color: data.color }
+      }));
+    });
+
+    // Очистка при выходе из проекта или закрытии вкладки
+    socket.on("user:left", ({ userId }) => {
+      setActiveCursors(prev => {
+        const copy = { ...prev };
+        delete copy[userId];
+        return copy;
+      });
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [whiteboardId]);
+
+  // Метод отправки изменений фигуры в WebSocket-канал
+  const emitShapeUpdate = (shape: any) => {
+    if (socketRef.current) {
+      socketRef.current.emit("shape:update", { whiteboardId, shape });
+    }
+  };
+
+  // Метод отправки координат курсора мыши (срабатывает на mouseMove)
+  const emitCursorMove = (coords: { x: number; y: number }) => {
+    if (socketRef.current) {
+      // Отправляем сырые координаты без тяжелого логгирования
+      socketRef.current.emit("cursor:move", { whiteboardId, ...coords });
+    }
+  };
+
+  return {
+    emitShapeUpdate,
+    emitCursorMove,
+    activeCursors
+  };
+}</code></pre>
+
+            <div class="doc-alert doc-alert-warning">
+              ⚠️ <strong>Важная деталь производительности:</strong> Метод `emitCursorMove` вызывается при каждом срабатывании события `MouseMove` в браузере (до 60-120 раз в секунду). Чтобы не спамить сетевой канал, на бэкенде обязательно применяется дросселирование (Throttling) отправки броадкастов на стороне сервера WebSocket (сервер пересылает курсоры не чаще, чем раз в 30 миллисекунд).
+            </div>
+          </section>
+
+        </article>
+      </main>
+      
+      <!-- Footer -->
+      <footer class="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 py-8 px-6 text-center text-xs text-slate-500 dark:text-slate-400">
+        <p>© 2026 Flycom-os. Внутренняя техническая документация.</p>
+      </footer>
+    </div>
+
+    <!-- Right Sidebar TOC -->
+    <aside id="doc-toc"></aside>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../assets/navigation.js"></script>
+  <script src="../assets/script.js"></script>
+</body>
+</html>

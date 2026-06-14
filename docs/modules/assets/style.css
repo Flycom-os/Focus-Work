@@ -1,0 +1,146 @@
+/* Custom Styles for Focus-Work Developer Documentation */
+
+/* Custom fonts loading */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&display=swap');
+
+body {
+  font-family: 'Inter', sans-serif;
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+code, pre {
+  font-family: 'Fira Code', monospace;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 9999px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #475569;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Sidebar Active Link Style */
+.active-nav-link {
+  background-color: rgba(99, 102, 241, 0.1);
+  border-left: 3px solid #6366f1;
+  color: #6366f1;
+  font-weight: 600;
+}
+
+.dark .active-nav-link {
+  background-color: rgba(99, 102, 241, 0.15);
+  border-left: 3px solid #818cf8;
+  color: #818cf8;
+  font-weight: 600;
+}
+
+/* Custom code copy animation */
+@keyframes pop {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+.copy-pop {
+  animation: pop 0.2s ease-in-out;
+}
+
+/* Alert boxes */
+.doc-alert {
+  border-left-width: 4px;
+  padding: 1rem;
+  margin: 1.5rem 0;
+  border-radius: 0.375rem;
+}
+
+.doc-alert-info {
+  background-color: rgba(59, 130, 246, 0.08);
+  border-color: #3b82f6;
+  color: #1e3a8a;
+}
+.dark .doc-alert-info {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+}
+
+.doc-alert-warning {
+  background-color: rgba(245, 158, 11, 0.08);
+  border-color: #f59e0b;
+  color: #78350f;
+}
+.dark .doc-alert-warning {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #fde68a;
+}
+
+.doc-alert-danger {
+  background-color: rgba(239, 68, 68, 0.08);
+  border-color: #ef4444;
+  color: #7f1d1d;
+}
+.dark .doc-alert-danger {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+}
+
+.doc-alert-success {
+  background-color: rgba(16, 185, 129, 0.08);
+  border-color: #10b981;
+  color: #064e3b;
+}
+.dark .doc-alert-success {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #a7f3d0;
+}
+
+/* Grid overlay for main page */
+.grid-bg {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(148, 163, 184, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+}
+
+.dark .grid-bg {
+  background-image: 
+    linear-gradient(to right, rgba(51, 65, 85, 0.15) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(51, 65, 85, 0.15) 1px, transparent 1px);
+}
+
+/* Mermaid theme customization */
+.mermaid {
+  background-color: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: center;
+}
+
+.dark .mermaid {
+  background-color: #0f172a;
+  border-color: #1e293b;
+}

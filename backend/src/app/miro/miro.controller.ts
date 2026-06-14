@@ -1,69 +1,139 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common'
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
-import { JwtAuthGuard } from '../../jwt-auth.guard'
-import { GetUserId } from '../../user/auth/get-user-id.decorator'
-import { CreateMiroBoardDto, CreateMiroNodeDto, SyncMiroBoardDto, UpdateMiroBoardDto, UpdateMiroNodeDto } from '../../dto/miro.dto'
-import { MiroService } from './miro.service'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../jwt-auth.guard';
+import { GetUserId } from '../../user/auth/get-user-id.decorator';
+import {
+  AddBoardMemberDto,
+  CreateBoardDto,
+  SyncBoardDto,
+  UpdateBoardDto,
+  UpdateBoardMemberDto,
+} from '../../dto/miro.dto';
+import { MiroService } from './miro.service';
 
-@ApiTags('Miro')
+@ApiTags('Miro Boards')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
-@Controller('miro')
+@Controller('boards')
 export class MiroController {
-  constructor(private readonly miro: MiroService) {}
+  constructor(private readonly miroService: MiroService) {}
 
-  @Get('boards')
-  @ApiOperation({ summary: 'Список досок текущего пользователя' })
+  // =================================================================
+  // Board CRUD
+  // =================================================================
+
+  @Get()
+  @ApiOperation({ summary: 'List all boards the current user is a member of' })
   listBoards(@GetUserId() userId: string) {
-    return this.miro.listBoards(userId)
+    return this.miroService.listBoards(userId);
   }
 
-  @Post('boards')
-  @ApiOperation({ summary: 'Создать доску' })
-  createBoard(@GetUserId() userId: string, @Body() dto: CreateMiroBoardDto) {
-    return this.miro.createBoard(userId, dto)
+  @Post()
+  @ApiOperation({ summary: 'Create a new board' })
+  createBoard(@GetUserId() userId: string, @Body() dto: CreateBoardDto) {
+    return this.miroService.createBoard(userId, dto);
   }
 
-  @Get('boards/:id')
-  @ApiOperation({ summary: 'Получить доску с нодами' })
-  getBoard(@GetUserId() userId: string, @Param('id') id: string) {
-    return this.miro.getBoard(userId, id)
+  @Get(':boardId')
+  @ApiOperation({ summary: 'Get a specific board by its ID' })
+  getBoard(
+    @GetUserId() userId: string,
+    @Param('boardId') boardId: string,
+  ) {
+    return this.miroService.getBoardById(boardId, userId);
   }
 
-  @Patch('boards/:id')
-  @ApiOperation({ summary: 'Обновить доску' })
-  updateBoard(@GetUserId() userId: string, @Param('id') id: string, @Body() dto: UpdateMiroBoardDto) {
-    return this.miro.updateBoard(userId, id, dto)
+  @Patch(':boardId')
+  @ApiOperation({ summary: 'Update a board’s details' })
+  updateBoard(
+    @GetUserId() userId: string,
+    @Param('boardId') boardId: string,
+    @Body() dto: UpdateBoardDto,
+  ) {
+    return this.miroService.updateBoard(boardId, userId, dto);
   }
 
-  @Patch('boards/:id/sync')
-  @ApiOperation({ summary: 'Синхронизировать доску целиком (все ноды)' })
-  syncBoard(@GetUserId() userId: string, @Param('id') id: string, @Body() dto: SyncMiroBoardDto) {
-    return this.miro.syncBoard(userId, id, dto)
+  @Delete(':boardId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Delete a board' })
+  async deleteBoard(
+    @GetUserId() userId: string,
+    @Param('boardId') boardId: string,
+  ) {
+    await this.miroService.deleteBoard(boardId, userId);
+    return;
   }
 
-  @Delete('boards/:id')
-  @ApiOperation({ summary: 'Удалить доску' })
-  deleteBoard(@GetUserId() userId: string, @Param('id') id: string) {
-    return this.miro.deleteBoard(userId, id)
+  // =================================================================
+  // Element Sync
+  // =================================================================
+
+  @Patch(':boardId/sync')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Sync board elements (create, update, delete)' })
+  async syncElements(
+      @GetUserId() userId: string,
+      @Param('boardId') boardId: string,
+      @Body() dto: SyncBoardDto,
+  ) {
+      await this.miroService.syncBoardElements(boardId, userId, dto);
+      return;
   }
 
-  @Post('boards/:id/nodes')
-  @ApiOperation({ summary: 'Создать ноду на доске' })
-  createNode(@GetUserId() userId: string, @Param('id') boardId: string, @Body() dto: CreateMiroNodeDto) {
-    return this.miro.createNode(userId, boardId, dto)
+  // =================================================================
+  // Board Member Management
+  // =================================================================
+
+  @Post(':boardId/members')
+  @ApiOperation({ summary: 'Add a member to a board' })
+  addMember(
+    @GetUserId() currentUserId: string,
+    @Param('boardId') boardId: string,
+    @Body() dto: AddBoardMemberDto,
+  ) {
+    return this.miroService.addBoardMember(boardId, currentUserId, dto);
   }
 
-  @Patch('nodes/:id')
-  @ApiOperation({ summary: 'Обновить ноду' })
-  updateNode(@GetUserId() userId: string, @Param('id') nodeId: string, @Body() dto: UpdateMiroNodeDto) {
-    return this.miro.updateNode(userId, nodeId, dto)
+  @Patch(':boardId/members/:targetUserId')
+  @ApiOperation({ summary: "Update a board member's role" })
+  updateMemberRole(
+    @GetUserId() currentUserId: string,
+    @Param('boardId') boardId: string,
+    @Param('targetUserId') targetUserId: string,
+    @Body() dto: UpdateBoardMemberDto,
+  ) {
+    return this.miroService.updateBoardMember(
+      boardId,
+      currentUserId,
+      targetUserId,
+      dto,
+    );
   }
 
-  @Delete('nodes/:id')
-  @ApiOperation({ summary: 'Удалить ноду' })
-  deleteNode(@GetUserId() userId: string, @Param('id') nodeId: string) {
-    return this.miro.deleteNode(userId, nodeId)
+  @Delete(':boardId/members/:targetUserId')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Remove a member from a board' })
+  async removeMember(
+    @GetUserId() currentUserId: string,
+    @Param('boardId') boardId: string,
+    @Param('targetUserId') targetUserId: string,
+  ) {
+    await this.miroService.removeBoardMember(
+      boardId,
+      currentUserId,
+      targetUserId,
+    );
+    return;
   }
 }
-

@@ -1,206 +1,331 @@
-import { ApiPropertyOptional } from '@nestjs/swagger'
-import { IsArray, IsBoolean, IsInt, IsObject, IsOptional, IsString, Min } from 'class-validator'
+import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsEmail, IsOptional, IsNumber, IsEnum, IsJSON } from 'class-validator';
+import { CrmStockMovementType, CrmDealStatus, CrmCameraEventType } from '@prisma/client';
 
-export class UpdateCrmProfileDto {
-  @ApiPropertyOptional()
-  @IsOptional()
+export class CreateCrmContactDto {
+  @ApiProperty()
   @IsString()
-  fullName?: string
+  firstName: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty()
   @IsString()
-  email?: string
+  lastName: string;
 
-  @ApiPropertyOptional()
+  @ApiProperty({ required: false })
+  @IsEmail()
   @IsOptional()
-  @IsString()
-  phone?: string
+  email?: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty({ required: false })
   @IsString()
-  password?: string
+  @IsOptional()
+  phone?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  companyId?: string;
 }
 
-export class UpsertCrmWarehouseDto {
-  @ApiPropertyOptional()
-  @IsOptional()
+export class UpdateCrmContactDto {
+  @ApiProperty({ required: false })
   @IsString()
-  name?: string
+  @IsOptional()
+  firstName?: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty({ required: false })
   @IsString()
-  address?: string
+  @IsOptional()
+  lastName?: string;
 
-  @ApiPropertyOptional()
+  @ApiProperty({ required: false })
+  @IsEmail()
   @IsOptional()
+  email?: string;
+
+  @ApiProperty({ required: false })
   @IsString()
-  comment?: string
+  @IsOptional()
+  phone?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  companyId?: string;
 }
 
-export class UpsertCrmCompanyDto {
-  @ApiPropertyOptional()
-  @IsOptional()
+export class CreateCrmWarehouseDto {
+  @ApiProperty()
   @IsString()
-  country?: string
+  name: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty({ required: false })
   @IsString()
-  inn?: string
-
-  @ApiPropertyOptional()
   @IsOptional()
-  @IsString()
-  currency?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  organizationType?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  name?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  address?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  bankName?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  bankLocation?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  bankBik?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  cardNumber?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  bankAccount?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  correspondentAccount?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  kpp?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  accountNumber?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  actNumber?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  stampUrl?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  signUrl?: string
-
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  paymentMessage?: string
+  address?: string;
 }
 
-export class UpdateCrmSystemDto {
-  @ApiPropertyOptional()
-  @IsOptional()
+export class UpdateCrmWarehouseDto {
+  @ApiProperty({ required: false })
   @IsString()
-  appName?: string
-
-  @ApiPropertyOptional()
   @IsOptional()
+  name?: string;
+
+  @ApiProperty({ required: false })
   @IsString()
-  appColor?: string
-
-  @ApiPropertyOptional()
   @IsOptional()
-  @IsInt()
-  @Min(0)
-  notifyAfterDays?: number
+  address?: string;
+}
 
-  @ApiPropertyOptional()
-  @IsOptional()
+export class CreateCrmProductDto {
+  @ApiProperty()
   @IsString()
-  telegramToken?: string
+  name: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty()
   @IsString()
-  autoSendInvoice?: string
+  sku: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty({ required: false })
   @IsString()
-  smtpHost?: string
-
-  @ApiPropertyOptional()
   @IsOptional()
+  description?: string;
+
+  @ApiProperty()
+  @IsNumber()
+  price: number;
+}
+
+export class UpdateCrmProductDto {
+  @ApiProperty({ required: false })
   @IsString()
-  smtpPort?: string
-
-  @ApiPropertyOptional()
   @IsOptional()
+  name?: string;
+
+  @ApiProperty({ required: false })
   @IsString()
-  imapHost?: string
-
-  @ApiPropertyOptional()
   @IsOptional()
+  sku?: string;
+
+  @ApiProperty({ required: false })
   @IsString()
-  imapPort?: string
-
-  @ApiPropertyOptional()
   @IsOptional()
+  description?: string;
+
+  @ApiProperty({ required: false })
+  @IsNumber()
+  @IsOptional()
+  price?: number;
+}
+
+export class CreateCrmStockDto {
+  @ApiProperty()
   @IsString()
-  smtpUser?: string
+  productId: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty()
   @IsString()
-  smtpPassword?: string
+  warehouseId: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
+  @ApiProperty()
+  @IsNumber()
+  quantity: number;
+}
+
+export class UpdateCrmStockDto {
+  @ApiProperty({ required: false })
   @IsString()
-  senderName?: string
-
-  @ApiPropertyOptional({ type: [String] })
   @IsOptional()
-  @IsArray()
-  menu?: string[]
+  productId?: string;
 
-  @ApiPropertyOptional()
+  @ApiProperty({ required: false })
+  @IsString()
   @IsOptional()
-  @IsObject()
-  menuMap?: Record<string, boolean>
+  warehouseId?: string;
+
+  @ApiProperty({ required: false })
+  @IsNumber()
+  @IsOptional()
+  quantity?: number;
+}
+
+export class CreateCrmStockMovementDto {
+  @ApiProperty({ enum: CrmStockMovementType })
+  @IsEnum(CrmStockMovementType)
+  type: CrmStockMovementType;
+
+  @ApiProperty()
+  @IsString()
+  stockId: string;
+
+  @ApiProperty()
+  @IsNumber()
+  quantity: number;
+}
+
+export class UpdateCrmStockMovementDto {
+  @ApiProperty({ required: false, enum: CrmStockMovementType })
+  @IsEnum(CrmStockMovementType)
+  @IsOptional()
+  type?: CrmStockMovementType;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  stockId?: string;
+
+  @ApiProperty({ required: false })
+  @IsNumber()
+  @IsOptional()
+  quantity?: number;
+}
+
+export class CreateCrmDealDto {
+  @ApiProperty()
+  @IsString()
+  name: string;
+
+  @ApiProperty({ enum: CrmDealStatus })
+  @IsEnum(CrmDealStatus)
+  status: CrmDealStatus;
+
+  @ApiProperty()
+  @IsNumber()
+  amount: number;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  companyId?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  contactId?: string;
+
+  @ApiProperty()
+  @IsString()
+  ownerId: string;
+}
+
+export class UpdateCrmDealDto {
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @ApiProperty({ required: false, enum: CrmDealStatus })
+  @IsEnum(CrmDealStatus)
+  @IsOptional()
+  status?: CrmDealStatus;
+
+  @ApiProperty({ required: false })
+  @IsNumber()
+  @IsOptional()
+  amount?: number;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  companyId?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  contactId?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  ownerId?: string;
+}
+
+export class CreateCrmCameraDto {
+  @ApiProperty()
+  @IsString()
+  name: string;
+
+  @ApiProperty()
+  @IsString()
+  rtspUrl: string;
+}
+
+export class UpdateCrmCameraDto {
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  name?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  rtspUrl?: string;
+}
+
+export class CreateCrmCameraEventDto {
+  @ApiProperty()
+  @IsString()
+  cameraId: string;
+
+  @ApiProperty({ enum: CrmCameraEventType })
+  @IsEnum(CrmCameraEventType)
+  type: CrmCameraEventType;
+
+  @ApiProperty()
+  @IsString()
+  timestamp: string; // Use string for ISO date time
+
+  @ApiProperty({ required: false })
+  @IsJSON()
+  @IsOptional()
+  data?: string; // JSON string
+}
+
+export class UpdateCrmCameraEventDto {
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  cameraId?: string;
+
+  @ApiProperty({ required: false, enum: CrmCameraEventType })
+  @IsEnum(CrmCameraEventType)
+  @IsOptional()
+  type?: CrmCameraEventType;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  timestamp?: string;
+
+  @ApiProperty({ required: false })
+  @IsJSON()
+  @IsOptional()
+  data?: string;
+}
+
+export class CreateCrmOrderDto {
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  dealId?: string;
+}
+
+export class UpdateCrmOrderDto {
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  dealId?: string;
+}
+
+export class CreateCrmShipmentDto {
+  @ApiProperty()
+  @IsString()
+  orderId: string;
+}
+
+export class UpdateCrmShipmentDto {
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  orderId?: string;
 }

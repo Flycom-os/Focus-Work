@@ -1,86 +1,40 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put, UseGuards } from '@nestjs/common'
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger'
-import { JwtAuthGuard } from '../../jwt-auth.guard'
-import { GetUserId } from '../../user/auth/get-user-id.decorator'
-import { CrmService } from './crm.service'
-import { UpdateCrmProfileDto, UpdateCrmSystemDto, UpsertCrmCompanyDto, UpsertCrmWarehouseDto } from '../../dto/crm.dto'
+import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { CrmService } from './crm.service';
+import { CreateCrmContactDto, UpdateCrmContactDto } from '../../dto/crm.dto';
+import { ApiTags, ApiOperation } from '@nestjs/swagger';
 
-@ApiTags('CRM')
-@ApiBearerAuth()
-@UseGuards(JwtAuthGuard)
-@Controller('crm')
+@ApiTags('CRM Contacts')
+@Controller('crm/contacts')
 export class CrmController {
-  constructor(private readonly crm: CrmService) {}
+  constructor(private readonly crmService: CrmService) {}
 
-  @Get('profile')
-  @ApiOperation({ summary: 'Профиль текущего пользователя CRM' })
-  profile(@GetUserId() userId: string) {
-    return this.crm.getProfile(userId)
+  @Post()
+  @ApiOperation({ summary: 'Create a new contact' })
+  create(@Body() createCrmContactDto: CreateCrmContactDto) {
+    return this.crmService.createContact(createCrmContactDto);
   }
 
-  @Patch('profile')
-  @ApiOperation({ summary: 'Обновить профиль текущего пользователя CRM' })
-  updateProfile(@GetUserId() userId: string, @Body() dto: UpdateCrmProfileDto) {
-    return this.crm.updateProfile(userId, dto)
+  @Get()
+  @ApiOperation({ summary: 'Get all contacts' })
+  findAll() {
+    return this.crmService.findAllContacts();
   }
 
-  @Get('system')
-  @ApiOperation({ summary: 'Получить настройки CRM системы' })
-  getSystem() {
-    return this.crm.getSystem()
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a contact by ID' })
+  findOne(@Param('id') id: string) {
+    return this.crmService.findOneContact(id);
   }
 
-  @Put('system')
-  @ApiOperation({ summary: 'Сохранить настройки CRM системы' })
-  updateSystem(@Body() dto: UpdateCrmSystemDto) {
-    return this.crm.updateSystem(dto)
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update a contact' })
+  update(@Param('id') id: string, @Body() updateCrmContactDto: UpdateCrmContactDto) {
+    return this.crmService.updateContact(id, updateCrmContactDto);
   }
 
-  @Get('warehouses')
-  @ApiOperation({ summary: 'Список складов CRM' })
-  warehouses() {
-    return this.crm.listWarehouses()
-  }
-
-  @Post('warehouses')
-  @ApiOperation({ summary: 'Создать склад CRM' })
-  createWarehouse(@Body() dto: UpsertCrmWarehouseDto) {
-    return this.crm.createWarehouse(dto)
-  }
-
-  @Patch('warehouses/:id')
-  @ApiOperation({ summary: 'Обновить склад CRM' })
-  updateWarehouse(@Param('id') id: string, @Body() dto: UpsertCrmWarehouseDto) {
-    return this.crm.updateWarehouse(id, dto)
-  }
-
-  @Delete('warehouses/:id')
-  @ApiOperation({ summary: 'Удалить склад CRM' })
-  removeWarehouse(@Param('id') id: string) {
-    return this.crm.removeWarehouse(id)
-  }
-
-  @Get('companies')
-  @ApiOperation({ summary: 'Список компаний CRM' })
-  companies() {
-    return this.crm.listCompanies()
-  }
-
-  @Get('companies/:id')
-  @ApiOperation({ summary: 'Компания CRM по id' })
-  company(@Param('id') id: string) {
-    return this.crm.getCompany(id)
-  }
-
-  @Post('companies')
-  @ApiOperation({ summary: 'Создать компанию CRM' })
-  createCompany(@Body() dto: UpsertCrmCompanyDto) {
-    return this.crm.createCompany(dto)
-  }
-
-  @Patch('companies/:id')
-  @ApiOperation({ summary: 'Обновить компанию CRM' })
-  updateCompany(@Param('id') id: string, @Body() dto: UpsertCrmCompanyDto) {
-    return this.crm.updateCompany(id, dto)
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a contact' })
+  remove(@Param('id') id: string) {
+    return this.crmService.removeContact(id);
   }
 }

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Введение и Архитектура — Модуль Задач</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Mermaid JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-150">
+
+  <!-- Header -->
+  <header id="doc-header"></header>
+
+  <div class="flex flex-1 w-full max-w-8xl mx-auto">
+    <!-- Sidebar -->
+    <aside id="doc-sidebar"></aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 lg:pl-64 xl:pr-64">
+      <main id="doc-content" class="p-6 md:p-10 max-w-4xl mx-auto">
+        <article class="space-y-10">
+          
+          <!-- Breadcrumbs -->
+          <nav class="flex text-sm text-slate-500 dark:text-slate-400 gap-2">
+            <a href="../index.html" class="hover:text-indigo-500">Главная</a>
+            <span>/</span>
+            <span class="text-slate-900 dark:text-slate-50 font-medium">Модуль Задач</span>
+            <span>/</span>
+            <span class="text-slate-400">Введение и Архитектура</span>
+          </nav>
+
+          <!-- Title -->
+          <div class="space-y-4">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">📁 Модуль Задач (Аналог YouTrack)</h1>
+            <p class="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+              Этот модуль отвечает за весь таск-менеджмент внутри компании: от простейших личных заметок до сложных Scrum-спринтов, учета рабочего времени и автоматического построения диаграмм сгорания задач (Burndown Charts).
+            </p>
+          </div>
+
+          <!-- Section 1: Intro -->
+          <section id="intro" class="space-y-4">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              🌟 1. Введение и бизнес-логика
+            </h2>
+            <p>
+              Чтобы понять, как устроен этот модуль, давайте представим обычную доску со стикерами в офисе. Каждый стикер — это <strong>Задача (Task)</strong>. Она висит в определенной колонке — <strong>Статус (Column)</strong>. Вы можете перетащить задачу руками в соседнюю колонку.
+            </p>
+            <p>
+              В Focus-Work мы реализовали этот функционал на стероидах:
+            </p>
+            <ul class="list-disc pl-6 space-y-2">
+              <li><strong>Многоуровневость:</strong> Проекты ➡️ Доски ➡️ Спринты ➡️ Колонки ➡️ Задачи ➡️ Подзадачи.</li>
+              <li><strong>Оценка времени (Estimation):</strong> Оценка задачи в часах (Story Points) с логами списания времени (Time Tracking).</li>
+              <li><strong>Совместная работа:</strong> Несколько пользователей могут одновременно смотреть на одну доску. Если один из них перетянет задачу, у остальных она передвинется на экране автоматически за доли секунды (WebSockets).</li>
+            </ul>
+
+            <div class="doc-alert doc-alert-info">
+              💡 <strong>Аналогия для джунов:</strong> Представьте, что Kanban-доска — это витрина магазина. Задачи — товары, а колонки — отделы. Когда товар покупают, он не исчезает мгновенно из памяти, он переходит на склад. Так же и в БД: при переносе задачи в колонку "Выполнено", мы не удаляем ее, а просто меняем ее связь с колонкой.
+            </div>
+          </section>
+
+          <!-- Section 2: Architecture -->
+          <section id="architecture" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              📊 2. Архитектура и Data Flow
+            </h2>
+            <p>
+              В основе модуля лежит концепция <strong>Optimistic Updates (Оптимистичные обновления)</strong>. Это значит, что когда пользователь перетаскивает задачу, интерфейс реагирует мгновенно, не дожидаясь ответа от сервера. Если сервер вернул ошибку, карточка плавно возвращается на исходное место.
+            </p>
+            
+            <p class="font-semibold text-slate-800 dark:text-slate-200">Схема жизненного цикла перемещения карточки (Drag & Drop Data Flow):</p>
+            
+            <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor User as Разработчик (Браузер)
+    participant UI as KanbanBoard Component
+    participant Cache as React Query (State)
+    participant Server as Next.js Server Action
+    participant DB as PostgreSQL
+    participant WS as WebSocket Server
+
+    User->>UI: Перетаскивает задачу из Column A в Column B
+    UI->>Cache: Срабатывает onDragEnd, обновляем кэш локально (Optimistic Update)
+    UI->>Server: Вызов Server Action: updateTaskColumn(taskId, targetColumnId, newPosition)
+    Server->>DB: Prisma update: меняем columnId и position у Task
+    DB-->>Server: Успешно записано
+    Server->>WS: Эмитим событие "task:moved" { taskId, colId, pos }
+    WS-->>User: (Связующий сокет отправляет бродкаст другим клиентам)
+    Server-->>UI: Возвращаем статус 200 OK
+    Note over UI,Cache: Кэш подтвержден. Карточка остается на месте.
+            </div>
+
+            <p class="text-sm text-slate-500 dark:text-slate-400">
+              Если шаг 4 падает (например, пропал интернет или задача заблокирована другим процессом), React Query ловит ошибку, считывает сохраненный снимок состояния доски и откатывает кэш, возвращая карточку назад в Column A с анимацией.
+            </p>
+          </section>
+
+          <!-- Section 3: Prisma Schema -->
+          <section id="database" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              🗄 3. Prisma-модели и Схема Базы Данных
+            </h2>
+            <p>
+              База данных спроектирована на СУБД PostgreSQL. Схема описана с использованием ORM Prisma. Ниже представлены основные сущности, их поля и связи.
+            </p>
+
+            <!-- Collapsible: Prisma Schema File -->
+            <div class="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+              <button class="collapsible-trigger w-full flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-950 text-left font-bold text-sm">
+                <span>📄 Посмотреть кусок schema.prisma для модуля Tasks</span>
+                <svg class="h-5 w-5 transform transition-transform duration-200 collapsible-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+              <div class="collapsible-content border-t border-slate-200 dark:border-slate-800 hidden">
+                <pre data-filename="prisma/schema.prisma"><code>model Project {
+  id          String   @id @default(uuid())
+  name        String
+  key         String   @unique // Например: "PROJ", "CRM"
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  boards      Board[]
+  tasks       Task[]
+}
+
+model Board {
+  id        String   @id @default(uuid())
+  name      String
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  columns   Column[]
+  createdAt DateTime @default(now())
+}
+
+model Column {
+  id        String   @id @default(uuid())
+  name      String
+  position  Float    // Используется для сортировки колонок
+  boardId   String
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+  createdAt DateTime @default(now())
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  title       String
+  description String?
+  position    Float     // Сортировка внутри колонки
+  statusId    String
+  column      Column    @relation(fields: [statusId], references: [id], onDelete: Cascade)
+  projectId   String
+  project     Project   @relation(fields: [projectId], references: [id])
+  assigneeId  String?
+  assignee    User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  creatorId   String
+  creator     User      @relation("TaskCreator", fields: [creatorId], references: [id])
+  priority    Priority  @default(MEDIUM)
+  estimation  Int?      // Время в минутах
+  timeSpent   Int       @default(0) // Залогированное время
+  dueDate     DateTime?
+  comments    Comment[]
+  subtasks    Task[]    @relation("TaskToSubtask")
+  parentId    String?
+  parent      Task?     @relation("TaskToSubtask", fields: [parentId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}</code></pre>
+              </div>
+            </div>
+
+            <!-- Deep Dive: Floating Point Positions -->
+            <div class="p-6 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 space-y-4">
+              <h3 class="text-lg font-bold text-indigo-500">💡 Глубокий разбор: Почему позиции колонок и задач типа Float, а не Int?</h3>
+              <p class="text-sm">
+                Представьте, что у вас есть 10 задач в колонке, пронумерованных от 1 до 10. Пользователь перетаскивает задачу с позиции 10 на позицию 2.
+              </p>
+              <p class="text-sm">
+                Если бы мы использовали <strong>целые числа (Int)</strong>, нам пришлось бы изменить индексы у ВСЕХ задач со 2 по 9 (сделать им +1). Это породило бы тяжелый запрос к базе данных, перезаписав 9 строк ради одного перемещения. А если в колонке 10 000 задач? База просто «ляжет» при активном перетаскивании.
+              </p>
+              <p class="text-sm font-semibold">
+                Как решает это Float:
+              </p>
+              <p class="text-sm">
+                Мы назначаем задачам позиции с большим шагом, например: задача 1 имеет позицию <code>1000.0</code>, задача 2 — <code>2000.0</code>. 
+                Если мы перетаскиваем задачу 10 между задачами 1 и 2, новая позиция вычисляется как среднее арифметическое: 
+                <br>
+                <code class="bg-slate-200 dark:bg-slate-800 px-2 py-1 rounded inline-block my-1 font-mono">(1000.0 + 2000.0) / 2 = 1500.0</code>
+              </p>
+              <p class="text-sm">
+                В итоге мы обновляем <strong>всего одну строку в базе данных</strong>! База данных чувствует себя прекрасно, а карточка встает ровно туда, куда нужно. Если позиции сблизятся слишком сильно (например, разница станет меньше 0.00001), срабатывает периодический фоновый скрипт пересчета индексов (rebalancing), который снова разносит их с шагом 1000.
+              </p>
+            </div>
+          </section>
+
+        </article>
+      </main>
+      
+      <!-- Footer -->
+      <footer class="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 py-8 px-6 text-center text-xs text-slate-500 dark:text-slate-400">
+        <p>© 2026 Flycom-os. Внутренняя техническая документация.</p>
+      </footer>
+    </div>
+
+    <!-- Right Sidebar TOC -->
+    <aside id="doc-toc"></aside>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../assets/navigation.js"></script>
+  <script src="../assets/script.js"></script>
+</body>
+</html>

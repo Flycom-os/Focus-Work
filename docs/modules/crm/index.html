@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Введение и Архитектура — Модуль CRM</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Mermaid JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-150">
+
+  <!-- Header -->
+  <header id="doc-header"></header>
+
+  <div class="flex flex-1 w-full max-w-8xl mx-auto">
+    <!-- Sidebar -->
+    <aside id="doc-sidebar"></aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 lg:pl-64 xl:pr-64">
+      <main id="doc-content" class="p-6 md:p-10 max-w-4xl mx-auto">
+        <article class="space-y-10">
+          
+          <!-- Breadcrumbs -->
+          <nav class="flex text-sm text-slate-500 dark:text-slate-400 gap-2">
+            <a href="../index.html" class="hover:text-indigo-500">Главная</a>
+            <span>/</span>
+            <span class="text-slate-900 dark:text-slate-50 font-medium">Модуль CRM</span>
+            <span>/</span>
+            <span class="text-slate-400">Введение и Архитектура</span>
+          </nav>
+
+          <!-- Title -->
+          <div class="space-y-4">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">💼 Модуль CRM (Бизнес-центр)</h1>
+            <p class="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+              Модуль CRM объединяет управление взаимоотношениями с клиентами, воронки сделок, складской учет остатков и систему видеонаблюдения за физическими складами и офисами в единый рабочий дашборд.
+            </p>
+          </div>
+
+          <!-- Section 1: Intro -->
+          <section id="intro" class="space-y-4">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              🌟 1. Введение и бизнес-логика
+            </h2>
+            <p>
+              Если Модуль Задач — это инструмент для разработчиков, то CRM — это <strong>главный орган управления бизнесом</strong> для менеджеров по продажам, кладовщиков и руководителей.
+            </p>
+            <p>
+              CRM решает три ключевые задачи:
+            </p>
+            <ul class="list-disc pl-6 space-y-2">
+              <li><strong>Продажи:</strong> Ведение сделок по этапам воронки (Лид ➡️ Переговоры ➡️ Договор ➡️ Оплата ➡️ Выполнено).</li>
+              <li><strong>Склады (Inventory):</strong> Партионный учет товаров. Мы должны точно знать, на каком складе лежит конкретный товар, какова его себестоимость и сколько штук зарезервировано под сделки.</li>
+              <li><strong>Контроль и безопасность (Камеры):</strong> Интеграция IP-видеокамер. Менеджер может прямо из CRM открыть камеру на складе №2 и проверить, идет ли отгрузка товара клиенту, не выходя из кабинета.</li>
+            </ul>
+
+            <div class="doc-alert doc-alert-info">
+              💡 <strong>Аналогия для джунов:</strong> Представьте, что CRM — это ресторан. Клиенты делают заказы (Сделки). Официанты смотрят на кухню через стекло (Видеокамеры), а продукты лежат на полках холодильников (Склады). Бухгалтерия записывает каждую копейку в кассовую книгу (Транзакции), из которой нельзя вырывать листы.
+            </div>
+          </section>
+
+          <!-- Section 2: Video Transcoding Architecture -->
+          <section id="architecture" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              📹 2. Стриминг видеокамер (RTSP to HLS Data Flow)
+            </h2>
+            <p>
+              Большинство IP-видеокамер выдают видеопоток по протоколу <strong>RTSP (Real-Time Streaming Protocol)</strong>. Современные браузеры (Chrome, Firefox, Safari) нативно RTSP проигрывать не умеют.
+            </p>
+            <p>
+              Чтобы показать поток в веб-интерфейсе, мы транскодируем его на лету в формат <strong>HLS (HTTP Live Streaming)</strong> с помощью утилиты FFmpeg на сервере:
+            </p>
+
+            <div class="mermaid">
+graph TD
+    Camera[📹 IP Камера] -- RTSP Stream (H.264 / AAC) --> FFmpeg[⚙️ FFmpeg Transcoder]
+    FFmpeg -- Нарезка потока на .ts сегменты --> Disk[(📂 Временная папка в ОЗУ /tmp)]
+    FFmpeg -- Создание плейлиста .m3u8 --> Disk
+    
+    Disk -- Чтение по HTTP (Next.js API Route) --> Express[🚀 API Сервер]
+    Express -- Раздача статических сегментов --> Player[💻 Клиент (Hls.js Player)]
+    
+    classDef default fill:#f9f9f9,stroke:#333,stroke-width:1px;
+    classDef cam fill:#eef2ff,stroke:#6366f1,stroke-width:2px;
+    classDef trans fill:#fdf2f8,stroke:#ec4899,stroke-width:2px;
+    classDef play fill:#ecfdf5,stroke:#10b981,stroke-width:2px;
+
+    class Camera cam;
+    class FFmpeg,Express trans;
+    class Player play;
+            </div>
+
+            <p class="text-sm text-slate-500 dark:text-slate-400">
+              FFmpeg непрерывно запрашивает кадры у камеры, упаковывает их в мелкие 2-секундные файлы с расширением `.ts` и записывает их во временную папку в оперативной памяти (чтобы поберечь ресурс SSD-диска). Также создается файл-индекс `.m3u8` (плейлист). Клиентский плеер Hls.js постоянно скачивает этот плейлист и воспроизводит `.ts` файлы один за другим, давая задержку трансляции всего около 3-4 секунд.
+            </p>
+          </section>
+
+          <!-- Section 3: Prisma Schema -->
+          <section id="database" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              🗄 3. Prisma-модели и Финансовая Неизменяемость
+            </h2>
+            <p>
+              Схема БД для CRM включает в себя справочники клиентов, сделок, продуктов и камер. Обратите внимание на модель <code class="font-mono">Transaction</code>: финансы требуют строгого аудита.
+            </p>
+
+            <div class="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+              <button class="collapsible-trigger w-full flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-950 text-left font-bold text-sm">
+                <span>📄 Посмотреть кусок schema.prisma для модуля CRM</span>
+                <svg class="h-5 w-5 transform transition-transform duration-200 collapsible-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+              <div class="collapsible-content border-t border-slate-200 dark:border-slate-800 hidden">
+                <pre data-filename="prisma/schema.prisma"><code>model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?  @unique
+  phone     String?
+  deals     Deal[]
+  transactions Transaction[]
+  createdAt DateTime @default(now())
+}
+
+model Deal {
+  id          String      @id @default(uuid())
+  title       String
+  amount      Float       // Сумма сделки
+  stage       DealStage   @default(LEAD)
+  customerId  String
+  customer    Customer    @relation(fields: [customerId], references: [id])
+  transactions Transaction[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Warehouse {
+  id        String   @id @default(uuid())
+  name      String
+  address   String?
+  stocks    Stock[]
+  cameras   Camera[]
+}
+
+model Product {
+  id        String   @id @default(uuid())
+  sku       String   @unique // Артикул
+  name      String
+  price     Float
+  stocks    Stock[]
+}
+
+model Stock {
+  id          String    @id @default(uuid())
+  warehouseId String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity    Int       @default(0) // Количество на конкретном складе
+}
+
+model Camera {
+  id          String    @id @default(uuid())
+  name        String
+  rtspUrl     String    // Ссылка на RTSP поток камеры
+  warehouseId String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  amount      Float    // Положительное (приход) или отрицательное (расход)
+  description String
+  dealId      String?
+  deal        Deal?    @relation(fields: [dealId], references: [id])
+  customerId  String
+  customer    Customer @relation(fields: [customerId], references: [id])
+  createdAt   DateTime @default(now()) // Изменять эту запись после создания НЕЛЬЗЯ
+}
+
+enum DealStage {
+  LEAD
+  NEGOTIATION
+  CONTRACT
+  PAYMENT
+  COMPLETED
+  LOST
+}</code></pre>
+              </div>
+            </div>
+
+            <!-- Deep Dive: Financial Immutability -->
+            <div class="p-6 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 space-y-4">
+              <h3 class="text-lg font-bold text-indigo-500">🛡 Важное правило: Неизменяемость финансовых транзакций (Ledger Pattern)</h3>
+              <p class="text-sm">
+                В базе данных CRM модель <code>Transaction</code> спроектирована так, что записи в нее можно только <strong>вставлять (Insert)</strong>. В кодовой базе наложен строгий запрет на операции `update` и `delete` для этой таблицы.
+              </p>
+              <p class="text-sm font-semibold">
+                Почему это критично:
+              </p>
+              <p class="text-sm">
+                Если менеджер ошибся и случайно зачислил клиенту 10 000 рублей вместо 1000, правильное исправление в бухгалтерии — это не редактирование старой строки, а создание новой корректирующей транзакции с суммой <code>-9000 рублей</code>.
+              </p>
+              <p class="text-sm">
+                Это гарантирует полную прозрачность аудита. Любая попытка изменить исторические данные в таблице транзакций расценивается системой безопасности как финансовое мошенничество.
+              </p>
+            </div>
+          </section>
+
+        </article>
+      </main>
+      
+      <!-- Footer -->
+      <footer class="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 py-8 px-6 text-center text-xs text-slate-500 dark:text-slate-400">
+        <p>© 2026 Flycom-os. Внутренняя техническая документация.</p>
+      </footer>
+    </div>
+
+    <!-- Right Sidebar TOC -->
+    <aside id="doc-toc"></aside>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../assets/navigation.js"></script>
+  <script src="../assets/script.js"></script>
+</body>
+</html>

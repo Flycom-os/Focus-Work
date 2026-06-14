@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Фичи и Практические гайды — Модуль CRM</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Mermaid JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-150">
+
+  <!-- Header -->
+  <header id="doc-header"></header>
+
+  <div class="flex flex-1 w-full max-w-8xl mx-auto">
+    <!-- Sidebar -->
+    <aside id="doc-sidebar"></aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 lg:pl-64 xl:pr-64">
+      <main id="doc-content" class="p-6 md:p-10 max-w-4xl mx-auto">
+        <article class="space-y-10">
+          
+          <!-- Breadcrumbs -->
+          <nav class="flex text-sm text-slate-500 dark:text-slate-400 gap-2">
+            <a href="../index.html" class="hover:text-indigo-500">Главная</a>
+            <span>/</span>
+            <a href="index.html" class="hover:text-indigo-500">Модуль CRM</a>
+            <span>/</span>
+            <span class="text-slate-400">Фичи и Практические гайды</span>
+          </nav>
+
+          <!-- Title -->
+          <div class="space-y-4">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">🛠 Фичи и Практические гайды CRM</h1>
+            <p class="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+              В данном разделе детально расписана интеграция CRM с внешними системами учета (1С) и приведены инструкции для администрирования видеонаблюдения и воронки.
+            </p>
+          </div>
+
+          <!-- Section 1: Features -->
+          <section id="features" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              📌 1. Бизнес-фичи модуля CRM
+            </h2>
+            <p>
+              CRM-система автоматизирует продажи и снабжение. Ниже описан внутренний функционал и интеграции:
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="p-5 border border-slate-200 dark:border-slate-800 rounded-lg space-y-2">
+                <h4 class="font-bold text-emerald-500">📊 Финансовая аналитика (Recharts)</h4>
+                <p class="text-sm">
+                  На главном дашборде CRM выводятся графики прибыли, среднего чека и конверсий. Данные агрегируются на сервере с помощью Prisma SQL-запросов (группировка по месяцам и дням) и передаются на клиент, где отрисовываются через SVG-библиотеку <code class="font-mono">recharts</code>.
+                </p>
+              </div>
+
+              <div class="p-5 border border-slate-200 dark:border-slate-800 rounded-lg space-y-2">
+                <h4 class="font-bold text-emerald-500">📦 Складской учет остатков (Stock)</h4>
+                <p class="text-sm">
+                  При создании успешной сделки система автоматически проверяет наличие продуктов на складе. Если товара достаточно, списывается соответствующее количество из модели <code class="font-mono">Stock</code>. Если товара не хватает, сделка блокируется, а менеджеру выводится предупреждение.
+                </p>
+              </div>
+
+              <div class="p-5 border border-slate-200 dark:border-slate-800 rounded-lg space-y-2">
+                <h4 class="font-bold text-emerald-500">🏢 Двусторонняя интеграция с 1С</h4>
+                <p class="text-sm">
+                  Для синхронизации каталога товаров и оплат используется фоновая gRPC-служба. Раз в час 1С выгружает остатки товаров на наш склад, а CRM отправляет обратно данные о проведенных оплатах по сделкам.
+                </p>
+              </div>
+
+              <div class="p-5 border border-slate-200 dark:border-slate-800 rounded-lg space-y-2">
+                <h4 class="font-bold text-emerald-500">🛡 Детекция лиц на складах (Face Recognition)</h4>
+                <p class="text-sm">
+                  Видеокамеры подключены к ML-сервису детекции лиц. При появлении человека в кадре на складе в нерабочее время, система распознает лицо сотрудника. Если это посторонний, CRM мгновенно рассылает алерты в Telegram руководству.
+                </p>
+              </div>
+            </div>
+          </section>
+
+          <!-- Section 2: Patterns -->
+          <section id="patterns" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              📐 2. Надежная интеграция с 1С (Transactional Outbox Pattern)
+            </h2>
+            <p>
+              При отправке данных из CRM в 1С (например, информации о новой оплате) может случиться сбой: в 1С пропал свет, зависла сеть или бэкенд 1С перезапускается.
+            </p>
+            <p>
+              Если мы сделаем запрос к 1С прямо внутри HTTP-запроса пользователя, то в случае ошибки 1С транзакция в нашей БД откатится, а менеджер получит ошибку 500. Это плохой UX.
+            </p>
+            
+            <p class="font-semibold text-slate-800 dark:text-slate-200">Решение: Transactional Outbox Pattern</p>
+            <p class="text-sm">
+              Вместо отправки запроса в 1С напрямую, мы создаем запись об оплате в таблице <code class="font-mono">Transaction</code> и ОДНОВРЕМЕННО в рамках одной транзакции БД записываем задачу отправки в таблицу <code class="font-mono">OutboxEvent</code>:
+            </p>
+
+            <pre data-filename="prisma/schema.prisma"><code>model OutboxEvent {
+  id        String   @id @default(uuid())
+  type      String   // Например: "TRANSACTION_CREATED"
+  payload   Json     // Данные транзакции
+  status    String   // PENDING, PROCESSED, FAILED
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+}</code></pre>
+
+            <p class="text-sm">
+              Отдельный фоновый воркер (Cron-задача) раз в 10 секунд считывает из БД события со статусом `PENDING`, пытается отправить их в 1С. В случае успеха статус меняется на `PROCESSED`. Если 1С лежит, воркер повторит попытку через минуту (используя алгоритм Exponential Backoff).
+            </p>
+          </section>
+
+          <!-- Section 3: Guides -->
+          <section id="guides" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              🚀 3. Практические руководства (How-To)
+            </h2>
+
+            <!-- Guide 1 -->
+            <div class="space-y-4">
+              <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">🛠 Гайд: Как добавить новый этап "В сборке" (ASSEMBLY) в воронку сделок?</h3>
+              <p class="text-sm">
+                Бизнес запросил добавить новый статус сборки товара на складе перед тем, как выставить счет на оплату.
+              </p>
+
+              <div class="space-y-3 text-sm">
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Шаг 1: Обновление Prisma схемы</p>
+                <p>Добавьте значение <code class="font-mono">ASSEMBLY</code> в перечисление <code class="font-mono">DealStage</code>:</p>
+                <pre data-filename="prisma/schema.prisma"><code>enum DealStage {
+  LEAD
+  NEGOTIATION
+  ASSEMBLY      // <-- Наш новый этап воронки
+  CONTRACT
+  PAYMENT
+  COMPLETED
+  LOST
+}</code></pre>
+
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Шаг 2: Создание миграции БД</p>
+                <pre data-filename="terminal"><code>npx prisma migrate dev --name add_assembly_stage_to_deals</code></pre>
+
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Шаг 3: Добавление этапа на фронтенд</p>
+                <p>Откройте файл <code class="font-mono">src/components/crm/DealPipeline.tsx</code> и добавьте новый этап в массив отображения колонок воронки:</p>
+                <pre data-filename="src/components/crm/DealPipeline.tsx"><code>const STAGES = [
+  { id: "LEAD", name: "Новые лиды" },
+  { id: "NEGOTIATION", name: "Переговоры" },
+  { id: "ASSEMBLY", name: "Сборка заказа" }, // <-- Добавили на доску!
+  { id: "CONTRACT", name: "Согласование договора" },
+  { id: "PAYMENT", name: "Ожидание оплаты" },
+  { id: "COMPLETED", name: "Сделка закрыта" }
+];</code></pre>
+              </div>
+            </div>
+
+            <hr class="border-slate-200 dark:border-slate-800 my-8">
+
+            <!-- Guide 2 -->
+            <div class="space-y-4">
+              <h3 class="text-lg font-bold text-slate-800 dark:text-slate-200">🛠 Гайд: Как подключить новую IP-камеру склада в CRM?</h3>
+              
+              <div class="space-y-3 text-sm">
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Шаг 1: Получение RTSP ссылки</p>
+                <p>Узнайте RTSP ссылку на поток камеры у системного администратора. Пример: <code class="font-mono">rtsp://admin:secret@192.168.10.45:554/h264Preview_01_main</code>.</p>
+                
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Шаг 2: Добавление записи в БД</p>
+                <p>Добавьте запись о камере в PostgreSQL, связав ее с нужным ID склада (<code class="font-mono">warehouseId</code>):</p>
+                <pre data-filename="seed"><code>await prisma.camera.create({
+  data: {
+    name: "Камера Склад Восток №1",
+    rtspUrl: "rtsp://admin:secret@192.168.10.45:554/h264Preview_01_main",
+    warehouseId: "some-warehouse-uuid-here"
+  }
+});</code></pre>
+
+                <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Шаг 3: Запуск транскодирования на сервере</p>
+                <p>Наш серверный бэкенд транскодирования автоматически считывает записи камер из БД и запускает для каждой из них отдельный фоновый процесс FFmpeg:</p>
+                <pre data-filename="backend/stream-manager.ts"><code>// Фоновый запуск FFmpeg для новой камеры
+const startTranscoding = (camera: Camera) => {
+  const ffmpegCmd = `ffmpeg -i ${camera.rtspUrl} -codec:v libx264 -preset superfast -codec:a aac -f hls -hls_time 2 -hls_list_size 5 -hls_flags delete_segments /tmp/streams/${camera.id}/stream.m3u8`;
+  exec(ffmpegCmd);
+};</code></pre>
+              </div>
+            </div>
+          </section>
+
+          <!-- Section 4: FAQ -->
+          <section id="faq" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              ❓ 4. FAQ: Устранение неполадок видеонаблюдения
+            </h2>
+
+            <div class="space-y-4">
+              <div class="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+                <button class="collapsible-trigger w-full flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-950 text-left font-bold">
+                  <span>Почему на плеере крутится бесконечная загрузка (loading wheel)?</span>
+                  <svg class="h-5 w-5 transform transition-transform duration-200 collapsible-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <div class="collapsible-content p-4 border-t border-slate-200 dark:border-slate-800 hidden text-sm text-slate-600 dark:text-slate-400 space-y-2">
+                  <p>Это происходит, если клиентский плеер Hls.js не может прочитать файл-манифест <code class="font-mono">stream.m3u8</code>.</p>
+                  <p><strong>Причины и диагностика:</strong></p>
+                  <ol class="list-decimal pl-6 space-y-1">
+                    <li>Камера отключена физически или поменялся ее IP-адрес. В этом случае процесс FFmpeg на сервере падает с ошибкой тайм-аута. Проверьте пинг до камеры из консоли сервера.</li>
+                    <li>Кончилось свободное место во временной папке <code class="font-mono">/tmp</code> на сервере. Очистите кэш сегментов.</li>
+                    <li>Падение фонового процесса Node.js транскодера. Перезапустите службу: <code class="font-mono">pm2 restart ffmpeg-transcoder</code>.</li>
+                  </ol>
+                </div>
+              </div>
+            </div>
+          </section>
+
+        </article>
+      </main>
+      
+      <!-- Footer -->
+      <footer class="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 py-8 px-6 text-center text-xs text-slate-500 dark:text-slate-400">
+        <p>© 2026 Flycom-os. Внутренняя техническая документация.</p>
+      </footer>
+    </div>
+
+    <!-- Right Sidebar TOC -->
+    <aside id="doc-toc"></aside>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../assets/navigation.js"></script>
+  <script src="../assets/script.js"></script>
+</body>
+</html>

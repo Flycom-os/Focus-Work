@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Главная — База Знаний Focus-Work</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Mermaid JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="./assets/style.css">
+</head>
+<body class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-150">
+
+  <!-- Header -->
+  <header id="doc-header"></header>
+
+  <div class="flex flex-1 w-full max-w-8xl mx-auto">
+    <!-- Sidebar -->
+    <aside id="doc-sidebar"></aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 lg:pl-64 xl:pr-64">
+      <main id="doc-content" class="p-6 md:p-10 max-w-4xl mx-auto">
+        <article class="space-y-12">
+          
+          <!-- Hero Section -->
+          <div class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 md:p-12 text-white shadow-xl grid-bg">
+            <div class="relative z-10 space-y-4">
+              <span class="inline-flex items-center gap-1.5 rounded-full bg-indigo-500/10 px-3 py-1 text-xs font-medium text-indigo-300 ring-1 ring-inset ring-indigo-500/20">
+                🚀 Технический портал разработчиков
+              </span>
+              <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight">Добро пожаловать в Focus-Work!</h1>
+              <p class="text-base md:text-lg text-slate-300 max-w-2xl leading-relaxed">
+                Это интерактивное оффлайн-руководство по архитектуре и кодовой базе нашей ERP-платформы. Здесь собран исчерпывающий разбор трёх ключевых модулей Next.js приложения.
+              </p>
+              <div class="flex flex-wrap gap-4 pt-2">
+                <a href="#onboarding" class="rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold hover:bg-indigo-500 transition-all shadow-md shadow-indigo-600/20">
+                  Быстрый старт (Onboarding)
+                </a>
+                <a href="tasks/index.html" class="rounded-lg bg-slate-800 hover:bg-slate-700 px-4 py-2.5 text-sm font-semibold transition-all">
+                  К Модулю Задач →
+                </a>
+              </div>
+            </div>
+            <div class="absolute right-0 bottom-0 top-0 w-1/3 hidden md:block opacity-10 bg-no-repeat bg-right bg-contain" style="background-image: url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 fill=%22none%22 viewBox=%220 0 24 24%22 stroke=%22white%22%3E%3Cpath stroke-linecap=%22round%22 stroke-linejoin=%22round%22 stroke-width=%221%22 d=%22M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z%22/%3E%3C/svg%3E')"></div>
+          </div>
+
+          <!-- Modules Cards Section -->
+          <div class="space-y-6">
+            <h2 id="modules-overview" class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              🔗 Три основных модуля системы
+            </h2>
+            <p class="text-slate-600 dark:text-slate-400">
+              Наше приложение состоит из трёх крупных функциональных ядер. Каждый модуль детально расписан: от структуры базы данных до построчного разбора исходного кода.
+            </p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              
+              <!-- Card 1: Tasks -->
+              <div class="flex flex-col justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-md transition-all">
+                <div class="space-y-4">
+                  <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500 dark:bg-indigo-500/20 dark:text-indigo-400">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold">Модуль Задач (YouTrack)</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 line-clamp-3">
+                      Инструмент управления проектами, Kanban-доски, спринты, трекинг времени и автоматические переходы статусов.
+                    </p>
+                  </div>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                  <a href="tasks/index.html" class="block text-xs font-semibold text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300">📖 Архитектура и База Данных →</a>
+                  <a href="tasks/code.html" class="block text-xs font-semibold text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300">💻 Разбор исходного кода →</a>
+                  <a href="tasks/features.html" class="block text-xs font-semibold text-indigo-500 hover:text-indigo-600 dark:text-indigo-400 dark:hover:text-indigo-300">🛠 Практические гайды →</a>
+                </div>
+              </div>
+
+              <!-- Card 2: Whiteboard -->
+              <div class="flex flex-col justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-md transition-all">
+                <div class="space-y-4">
+                  <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-pink-500/10 text-pink-500 dark:bg-pink-500/20 dark:text-pink-400">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold">Whiteboard (Miro / tldraw)</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 line-clamp-3">
+                      Интерактивная доска на HTML5 Canvas/SVG. Совместная работа в реальном времени, стикеры, фигуры, связь через WebSocket.
+                    </p>
+                  </div>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                  <a href="whiteboard/index.html" class="block text-xs font-semibold text-pink-500 hover:text-pink-600 dark:text-pink-400 dark:hover:text-pink-300">📖 Архитектура и База Данных →</a>
+                  <a href="whiteboard/code.html" class="block text-xs font-semibold text-pink-500 hover:text-pink-600 dark:text-pink-400 dark:hover:text-pink-300">💻 Разбор исходного кода →</a>
+                  <a href="whiteboard/features.html" class="block text-xs font-semibold text-pink-500 hover:text-pink-600 dark:text-pink-400 dark:hover:text-pink-300">🛠 Практические гайды →</a>
+                </div>
+              </div>
+
+              <!-- Card 3: CRM -->
+              <div class="flex flex-col justify-between rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm hover:shadow-md transition-all">
+                <div class="space-y-4">
+                  <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500 dark:bg-emerald-500/20 dark:text-emerald-400">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 class="text-lg font-bold">Модуль CRM (Бизнес)</h3>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mt-2 line-clamp-3">
+                      Воронки продаж, карточки клиентов, управление складами, RTSP/HLS видеонаблюдение и дашборды финансовой аналитики.
+                    </p>
+                  </div>
+                </div>
+                <div class="mt-6 pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
+                  <a href="crm/index.html" class="block text-xs font-semibold text-emerald-500 hover:text-emerald-600 dark:text-emerald-400 dark:hover:text-emerald-300">📖 Архитектура и База Данных →</a>
+                  <a href="crm/code.html" class="block text-xs font-semibold text-emerald-500 hover:text-emerald-600 dark:text-emerald-400 dark:hover:text-emerald-300">💻 Разбор исходного кода →</a>
+                  <a href="crm/features.html" class="block text-xs font-semibold text-emerald-500 hover:text-emerald-600 dark:text-emerald-400 dark:hover:text-emerald-300">🛠 Практические гайды →</a>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Tech Stack Overview -->
+          <div class="space-y-6">
+            <h2 id="tech-stack" class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              🛠 Технологический стек (Tech Stack)
+            </h2>
+            <p class="text-slate-600 dark:text-slate-400">
+              Вся наша экосистема спроектирована на современном JS/TS стеке. Это обеспечивает высокую производительность и единый язык разработки на фронтенде и бэкенде.
+            </p>
+
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-slate-200 dark:divide-slate-800 text-sm">
+                <thead>
+                  <tr class="bg-slate-50 dark:bg-slate-950">
+                    <th class="px-6 py-3 text-left font-semibold">Слой</th>
+                    <th class="px-6 py-3 text-left font-semibold">Технологии</th>
+                    <th class="px-6 py-3 text-left font-semibold">Назначение в Focus-Work</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tr>
+                    <td class="px-6 py-4 font-semibold text-indigo-500">Фреймворк</td>
+                    <td class="px-6 py-4">Next.js 14+ (App Router)</td>
+                    <td class="px-6 py-4">Гибридный рендеринг, Server Actions, API роуты, оптимизация SEO.</td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 font-semibold text-indigo-500">База данных</td>
+                    <td class="px-6 py-4">PostgreSQL + Prisma ORM</td>
+                    <td class="px-6 py-4">Хранение структурированных данных (транзакции CRM, логи, доски, задачи).</td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 font-semibold text-indigo-500">Реалтайм</td>
+                    <td class="px-6 py-4">Socket.io + WebRTC</td>
+                    <td class="px-6 py-4">Совместное рисование на Whiteboard, мгновенные чаты в задачах.</td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 font-semibold text-indigo-500">Стилизация</td>
+                    <td class="px-6 py-4">Tailwind CSS + Shadcn UI</td>
+                    <td class="px-6 py-4">Быстрая верстка унифицированного интерфейса, темная тема из коробки.</td>
+                  </tr>
+                  <tr>
+                    <td class="px-6 py-4 font-semibold text-indigo-500">Стриминг</td>
+                    <td class="px-6 py-4">Node RTSP-to-Web + HLS.js</td>
+                    <td class="px-6 py-4">Конвертация видеопотоков с IP-камер видеонаблюдения для вывода в CRM.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Onboarding Guide -->
+          <div id="onboarding" class="space-y-6 pt-4">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              🏁 Инструкция по быстрому старту (Onboarding)
+            </h2>
+            <p class="text-slate-600 dark:text-slate-400">
+              Пройдите эти шаги, чтобы развернуть Focus-Work локально на вашей машине менее чем за 10 минут:
+            </p>
+
+            <div class="space-y-4">
+              <div class="flex items-start gap-4">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-white font-bold text-sm">1</span>
+                <div>
+                  <h4 class="font-bold">Клонирование репозитория и установка зависимостей</h4>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">Стяните последнюю версию `main` ветки и установите пакеты:</p>
+                  <pre data-filename="terminal"><code>git clone https://github.com/flycom-os/focus-work.git
+cd focus-work
+npm install</code></pre>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-white font-bold text-sm">2</span>
+                <div>
+                  <h4 class="font-bold">Настройка окружения (.env)</h4>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">Скопируйте пример настроек и заполните переменные окружения:</p>
+                  <pre data-filename=".env"><code>DATABASE_URL="postgresql://postgres:postgres@localhost:5432/focus_work?schema=public"
+NEXTAUTH_SECRET="your-super-secret-key-for-nextauth"
+NEXT_PUBLIC_WS_SERVER_URL="http://localhost:3001"
+RTSP_STREAM_URL="rtsp://admin:password@192.168.1.100:554/live"</code></pre>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-white font-bold text-sm">3</span>
+                <div>
+                  <h4 class="font-bold">Подъем базы данных в Docker</h4>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">Если у вас не установлен PostgreSQL локально, запустите контейнер:</p>
+                  <pre data-filename="docker-compose.yml"><code>version: '3.8'
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: focus_work
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:</code></pre>
+                  <pre data-filename="terminal"><code>docker-compose up -d</code></pre>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-white font-bold text-sm">4</span>
+                <div>
+                  <h4 class="font-bold">Миграции Prisma и Заполнение БД (Seeding)</h4>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">Накатите схему БД и заполните ее тестовыми данными:</p>
+                  <pre data-filename="terminal"><code>npx prisma migrate dev --name init
+npx prisma db seed</code></pre>
+                </div>
+              </div>
+
+              <div class="flex items-start gap-4">
+                <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-indigo-500 text-white font-bold text-sm">5</span>
+                <div>
+                  <h4 class="font-bold">Запуск в Dev-режиме</h4>
+                  <p class="text-sm text-slate-500 dark:text-slate-400">Запустите параллельно веб-сервер Next.js и WebSocket-сервер:</p>
+                  <pre data-filename="terminal"><code>npm run dev</code></pre>
+                  <div class="doc-alert doc-alert-info mt-2">
+                    💡 Приложение запустится на <a href="http://localhost:3000" class="underline font-bold">http://localhost:3000</a>. WebSocket-сервер для Whiteboard поднимется на порту 3001. Логин по умолчанию: <code class="bg-indigo-100/50 dark:bg-indigo-950 px-1 py-0.5 rounded">admin@focus.work</code> / <code class="bg-indigo-100/50 dark:bg-indigo-950 px-1 py-0.5 rounded">admin123</code>.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Core Architectures Diagram -->
+          <div class="space-y-6">
+            <h2 id="core-architecture" class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              📊 Общая схема взаимодействия (High-Level Architecture)
+            </h2>
+            <p class="text-slate-600 dark:text-slate-400">
+              Ниже представлена архитектура всей системы, отображающая, как клиент взаимодействует с Next.js, бэкенд-службами и БД:
+            </p>
+
+            <div class="mermaid">
+graph TD
+    Client[🖥 Клиентский браузер (React/Next.js)] -- HTTP/HTTPS --> NextServer[⚙️ Next.js Сервер]
+    Client -- WebSockets (Socket.io) --> WSServer[📡 WebSocket Сервер :3001]
+    
+    subgraph Backend Services
+        NextServer -- Prisma Client --> DB[(🗄 PostgreSQL)]
+        NextServer -- Server Actions --> DB
+        NextServer -- REST / gRPC --> ERP[🏢 Внешняя 1С ERP]
+        WSServer -- Sync Shapes --> DB
+        
+        RTSPServer[📹 RTSP to HLS transcoder] -- HLS Streams --> Client
+        IPCamera[📹 IP Камеры] -- RTSP stream --> RTSPServer
+    end
+
+    classDef default fill:#f9f9f9,stroke:#333,stroke-width:1px;
+    classDef client fill:#e0e7ff,stroke:#6366f1,stroke-width:2px;
+    classDef server fill:#fdf2f8,stroke:#ec4899,stroke-width:2px;
+    classDef db fill:#ecfdf5,stroke:#10b981,stroke-width:2px;
+    
+    class Client client;
+    class NextServer,WSServer,RTSPServer server;
+    class DB db;
+            </div>
+          </div>
+
+          <!-- FAQ Summary -->
+          <div class="space-y-6">
+            <h2 id="faq" class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              ❓ Общие вопросы по онбордингу
+            </h2>
+            
+            <div class="space-y-4">
+              <div class="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+                <button class="collapsible-trigger w-full flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-950 text-left font-bold">
+                  <span>Как переключить базу данных с PostgreSQL на SQLite для тестов?</span>
+                  <svg class="h-5 w-5 transform transition-transform duration-200 collapsible-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <div class="collapsible-content p-4 border-t border-slate-200 dark:border-slate-800 hidden text-sm text-slate-600 dark:text-slate-400 space-y-2">
+                  <p>Мы крайне не рекомендуем делать это, так как SQLite не поддерживает некоторые JSON-функции PostgreSQL, которые используются в Модуле Whiteboard для сериализации фигур и логов. Также SQLite не поддерживает параллельные транзакции на запись, что заблокирует CRM.</p>
+                  <p>Если вам обязательно нужна легкая база, используйте Docker-контейнер PostgreSQL, как описано в шаге 3 руководства быстрого старта.</p>
+                </div>
+              </div>
+
+              <div class="border border-slate-200 dark:border-slate-800 rounded-lg overflow-hidden">
+                <button class="collapsible-trigger w-full flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-950 text-left font-bold">
+                  <span>Почему не работает WebSocket-соединение на Whiteboard?</span>
+                  <svg class="h-5 w-5 transform transition-transform duration-200 collapsible-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                <div class="collapsible-content p-4 border-t border-slate-200 dark:border-slate-800 hidden text-sm text-slate-600 dark:text-slate-400 space-y-2">
+                  <p>Убедитесь, что запущен WebSocket бэкенд. При запуске через <code class="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">npm run dev</code> скрипт параллельно поднимает Next.js (на порту 3000) и WebSocket-сервер из папки <code class="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">backend/src/server.ts</code> (на порту 3001).</p>
+                  <p>Если вы запускаете их по отдельности, перейдите в папку бэкенда и запустите его вручную: <code class="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">npm run dev:websocket</code>.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </article>
+      </main>
+      
+      <!-- Footer -->
+      <footer class="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 py-8 px-6 text-center text-xs text-slate-500 dark:text-slate-400">
+        <p>© 2026 Flycom-os. Внутренняя техническая документация.</p>
+        <p class="mt-2">Сделано с ❤️ для разработчиков Focus-Work.</p>
+      </footer>
+    </div>
+
+    <!-- Right Sidebar TOC -->
+    <aside id="doc-toc"></aside>
+  </div>
+
+  <!-- Scripts -->
+  <script src="./assets/navigation.js"></script>
+  <script src="./assets/script.js"></script>
+</body>
+</html>

@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Разбор кода — Модуль Задач</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Mermaid JS CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+<body class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-150">
+
+  <!-- Header -->
+  <header id="doc-header"></header>
+
+  <div class="flex flex-1 w-full max-w-8xl mx-auto">
+    <!-- Sidebar -->
+    <aside id="doc-sidebar"></aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 lg:pl-64 xl:pr-64">
+      <main id="doc-content" class="p-6 md:p-10 max-w-4xl mx-auto">
+        <article class="space-y-10">
+          
+          <!-- Breadcrumbs -->
+          <nav class="flex text-sm text-slate-500 dark:text-slate-400 gap-2">
+            <a href="../index.html" class="hover:text-indigo-500">Главная</a>
+            <span>/</span>
+            <a href="index.html" class="hover:text-indigo-500">Модуль Задач</a>
+            <span>/</span>
+            <span class="text-slate-400">Разбор кода</span>
+          </nav>
+
+          <!-- Title -->
+          <div class="space-y-4">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight">💻 Разбор кода модуля Задач</h1>
+            <p class="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+              В этом разделе мы заглянем "под капот" нашего таск-трекера. Разберем ключевые файлы, реализующие доску, серверные действия и оптимистичное обновление состояния кэша в браузере.
+            </p>
+          </div>
+
+          <!-- Section 1: Server Actions -->
+          <section id="server-actions" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              ⚡ 1. Серверные экшены (Actions)
+            </h2>
+            <p>
+              Серверные экшены в Next.js — это функции, которые выполняются строго на сервере, но могут вызываться напрямую из клиентских компонентов как обычные асинхронные JS-функции.
+            </p>
+            
+            <p>Файл <code class="bg-slate-100 dark:bg-slate-800 px-1 py-0.5 rounded">src/app/actions/tasks.ts</code> содержит CRUD операции с задачами.</p>
+
+            <pre data-filename="src/app/actions/tasks.ts"><code>"use server";
+
+import { prisma } from "@/lib/prisma";
+import { revalidatePath } from "next/cache";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+
+export async function moveTaskAction(
+  taskId: string,
+  targetColumnId: string,
+  newPosition: number
+) {
+  // 1. Проверяем авторизацию пользователя
+  const session = await getServerSession(authOptions);
+  if (!session || !session.user) {
+    throw new Error("Не авторизован");
+  }
+
+  // 2. Получаем задачу, чтобы проверить доступ к проекту
+  const task = await prisma.task.findUnique({
+    where: { id: taskId },
+    select: { projectId: true }
+  });
+
+  if (!task) {
+    throw new Error("Задача не найдена");
+  }
+
+  // 3. Проверяем, состоит ли пользователь в этом проекте (безопасность!)
+  const userProject = await prisma.projectMember.findFirst({
+    where: {
+      projectId: task.projectId,
+      userId: session.user.id
+    }
+  });
+
+  if (!userProject) {
+    throw new Error("У вас нет доступа к этому проекту");
+  }
+
+  // 4. Обновляем статус и позицию задачи
+  const updatedTask = await prisma.task.update({
+    where: { id: taskId },
+    data: {
+      statusId: targetColumnId,
+      position: newPosition
+    }
+  });
+
+  // 5. Очищаем кэш Next.js для этого проекта, чтобы обновились SSR-страницы
+  revalidatePath(`/projects/${task.projectId}/board`);
+
+  return { success: true, task: updatedTask };
+}</code></pre>
+
+            <div class="space-y-4">
+              <h3 class="text-lg font-bold">🕵️‍♂️ Поблочное объяснение логики:</h3>
+              <ul class="list-decimal pl-6 space-y-3">
+                <li>
+                  <strong>Строка 1: <code class="font-mono">"use server";</code></strong> — Директива говорит сборщику Webpack/Turbopack, что этот файл содержит исключительно серверные методы. Клиентский бандл не получит этот код, а значит наши пароли и прямой доступ к БД в безопасности.
+                </li>
+                <li>
+                  <strong>Шаги 1-3 (Безопасность):</strong> Мы никогда не доверяем клиенту на слово. Даже если клиент передал правильный `taskId`, мы проверяем через сессию пользователя (`getServerSession`), имеет ли он юридическое право изменять данные в рамках этого проекта. Это защищает нас от IDOR-уязвимостей.
+                </li>
+                <li>
+                  <strong>Шаг 4 (Prisma update):</strong> Мы обновляем только две переменные: `statusId` (новая колонка) и `position` (float позиция для сортировки).
+                </li>
+                <li>
+                  <strong>Шаг 5 (Сброс SSR кэша):</strong> Вызов `revalidatePath` указывает Next.js сбросить кэшированный рендеринг страницы Kanban-доски. При следующем обновлении страницы пользователь получит актуальную верстку прямо от сервера.
+                </li>
+              </ul>
+            </div>
+          </section>
+
+          <!-- Section 2: Kanban Component -->
+          <section id="kanban-component" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              📋 2. Клиентский компонент KanbanBoard.tsx
+            </h2>
+            <p>
+              Для реализации перетаскивания (Drag and Drop) используется библиотека <strong>@hello-pangea/dnd</strong> (современный форк устаревшей react-beautiful-dnd, полностью поддерживающий React 18).
+            </p>
+
+            <pre data-filename="src/components/tasks/KanbanBoard.tsx"><code>"use client";
+
+import React from "react";
+import { DragDropContext, Droppable, Draggable, DropResult } from "@hello-pangea/dnd";
+import { useTasksMutation } from "@/hooks/useTasks";
+
+interface Task {
+  id: string;
+  title: string;
+  position: number;
+}
+
+interface Column {
+  id: string;
+  name: string;
+  tasks: Task[];
+}
+
+export default function KanbanBoard({ initialColumns }: { initialColumns: Column[] }) {
+  const [columns, setColumns] = React.useState<Column[]>(initialColumns);
+  const { mutateMoveTask } = useTasksMutation();
+
+  const onDragEnd = (result: DropResult) => {
+    const { destination, source, draggableId } = result;
+
+    // Если перетащили "в никуда" - ничего не делаем
+    if (!destination) return;
+
+    // Если перетащили в ту же точку - ничего не делаем
+    if (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    ) return;
+
+    const sourceCol = columns.find(col => col.id === source.droppableId);
+    const destCol = columns.find(col => col.id === destination.droppableId);
+
+    if (!sourceCol || !destCol) return;
+
+    // Локально пересчитываем новую позицию (Float)
+    let newPosition = 0;
+    const destTasks = [...destCol.tasks];
+    
+    // Если перетаскиваем внутри одной колонки
+    if (source.droppableId === destination.droppableId) {
+      destTasks.splice(source.index, 1);
+    }
+
+    if (destination.index === 0) {
+      // Ставим в самое начало
+      newPosition = destTasks.length > 0 ? destTasks[0].position / 2 : 1000;
+    } else if (destination.index >= destTasks.length) {
+      // Ставим в самый конец
+      newPosition = destTasks.length > 0 ? destTasks[destTasks.length - 1].position + 1000 : 1000;
+    } else {
+      // Вставляем между двумя задачами
+      const prevPos = destTasks[destination.index - 1].position;
+      const nextPos = destTasks[destination.index].position;
+      newPosition = (prevPos + nextPos) / 2;
+    }
+
+    // Вызываем хук-мутацию для отправки на бэк и обновления кэша
+    mutateMoveTask({
+      taskId: draggableId,
+      targetColumnId: destination.droppableId,
+      newPosition: newPosition
+    });
+  };
+
+  return (
+    &lt;DragDropContext onDragEnd={onDragEnd}&gt;
+      &lt;div class="flex gap-4 p-4 overflow-x-auto select-none"&gt;
+        {columns.map(col =&gt; (
+          &lt;div key={col.id} class="w-72 bg-slate-100 dark:bg-slate-900 rounded-lg p-3 shrink-0"&gt;
+            &lt;h3 class="font-bold mb-3 text-slate-700 dark:text-slate-300"&gt;{col.name}&lt;/h3&gt;
+            
+            &lt;Droppable droppableId={col.id}&gt;
+              {(provided) =&gt; (
+                &lt;div
+                  {...provided.droppableId}
+                  ref={provided.innerRef}
+                  class="space-y-2 min-h-[500px]"
+                &gt;
+                  {col.tasks.map((task, index) =&gt; (
+                    &lt;Draggable key={task.id} draggableId={task.id} index={index}&gt;
+                      {(provided, snapshot) =&gt; (
+                        &lt;div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                          class={`p-4 rounded bg-white dark:bg-slate-800 shadow-sm border border-slate-200 dark:border-slate-700 ${
+                            snapshot.isDragging ? 'rotate-2 shadow-lg scale-102 border-indigo-500' : ''
+                          }`}
+                        &gt;
+                          &lt;h4 class="font-semibold text-sm"&gt;{task.title}&lt;/h4&gt;
+                        &lt;/div>
+                      )}
+                    &lt;/Draggable&gt;
+                  ))}
+                  {provided.placeholder}
+                &lt;/div&gt;
+              )}
+            &lt;/Droppable&gt;
+          &lt;/div&gt;
+        ))}
+      &lt;/div&gt;
+    &lt;/DragDropContext&gt;
+  );
+}</code></pre>
+          </section>
+
+          <!-- Section 3: Custom React Query Hook -->
+          <section id="socket-hook" class="space-y-6">
+            <h2 class="text-2xl font-bold tracking-tight border-b pb-2 border-slate-200 dark:border-slate-800">
+              🔄 3. Хук useTasks.ts и Optimistic Updates
+            </h2>
+            <p>
+              Чтобы UI доски реагировал мгновенно без раздражающего спиннера, мы пишем кастомную мутацию с помощью <strong>@tanstack/react-query</strong>.
+            </p>
+
+            <pre data-filename="src/hooks/useTasks.ts"><code>import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { moveTaskAction } from "@/app/actions/tasks";
+
+interface MoveTaskVariables {
+  taskId: string;
+  targetColumnId: string;
+  newPosition: number;
+}
+
+export function useTasksMutation() {
+  const queryClient = useQueryClient();
+
+  const { mutate: mutateMoveTask } = useMutation({
+    mutationFn: async ({ taskId, targetColumnId, newPosition }: MoveTaskVariables) => {
+      // Вызываем наш Server Action напрямую
+      return moveTaskAction(taskId, targetColumnId, newPosition);
+    },
+    
+    // Шаг 1. Перед отправкой запроса на сервер
+    onMutate: async (variables) => {
+      // Отменяем все исходящие перезапросы доски, чтобы они не затерли оптимистичный кэш
+      await queryClient.cancelQueries({ queryKey: ["board-data"] });
+
+      // Делаем снимок текущего состояния кэша (Snapshot)
+      const previousBoard = queryClient.getQueryData(["board-data"]);
+
+      // Оптимистично перезаписываем кэш новыми координатами
+      queryClient.setQueryData(["board-data"], (oldData: any) => {
+        if (!oldData) return oldData;
+        
+        // Клонируем данные доски
+        const updatedColumns = oldData.columns.map((col: any) => {
+          // Удаляем задачу из старой колонки
+          const tasks = col.tasks.filter((t: any) => t.id !== variables.taskId);
+          return { ...col, tasks };
+        });
+
+        // Находим задачу, которую перенесли
+        let movedTask: any = null;
+        for (const col of oldData.columns) {
+          const found = col.tasks.find((t: any) => t.id === variables.taskId);
+          if (found) {
+            movedTask = { ...found, statusId: variables.targetColumnId, position: variables.newPosition };
+            break;
+          }
+        }
+
+        // Добавляем задачу в целевую колонку
+        if (movedTask) {
+          const targetCol = updatedColumns.find((col: any) => col.id === variables.targetColumnId);
+          if (targetCol) {
+            targetCol.tasks.push(movedTask);
+            // Сортируем задачи по новой позиции
+            targetCol.tasks.sort((a: any, b: any) => a.position - b.position);
+          }
+        }
+
+        return { ...oldData, columns: updatedColumns };
+      });
+
+      // Возвращаем снимок для возможности отката в случае ошибки
+      return { previousBoard };
+    },
+
+    // Шаг 2. Если сервер ответил ошибкой
+    onError: (err, variables, context: any) => {
+      console.error("Dnd error, rolling back cache:", err);
+      // Возвращаем данные из сохраненного снимка
+      if (context?.previousBoard) {
+        queryClient.setQueryData(["board-data"], context.previousBoard);
+      }
+    },
+
+    // Шаг 3. Всегда (успех или ошибка)
+    onSettled: () => {
+      // Инвалидируем кэш, чтобы гарантировать 100% консистентность с БД
+      queryClient.invalidateQueries({ queryKey: ["board-data"] });
+    }
+  });
+
+  return { mutateMoveTask };
+}</code></pre>
+
+            <div class="doc-alert doc-alert-success">
+              🚀 <strong>Зачем это нужно?</strong> Пользователю кажется, что приложение работает локально на скорости 120 FPS. Перетаскивание происходит за 0 мс. Даже если интернет работает с перебоями или пинг до сервера составляет 300 мс, интерфейс не зависает.
+            </div>
+          </section>
+
+        </article>
+      </main>
+      
+      <!-- Footer -->
+      <footer class="border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 py-8 px-6 text-center text-xs text-slate-500 dark:text-slate-400">
+        <p>© 2026 Flycom-os. Внутренняя техническая документация.</p>
+      </footer>
+    </div>
+
+    <!-- Right Sidebar TOC -->
+    <aside id="doc-toc"></aside>
+  </div>
+
+  <!-- Scripts -->
+  <script src="../assets/navigation.js"></script>
+  <script src="../assets/script.js"></script>
+</body>
+</html>
